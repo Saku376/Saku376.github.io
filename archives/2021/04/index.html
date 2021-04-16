@@ -75,81 +75,155 @@
       <div class="outer">
         <section id="main">
   
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/04/16/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E6%A0%88%E6%BA%A2%E5%87%BA%E5%85%A5%E9%97%A8/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-04-16T11:15:13.522Z" itemprop="datePublished">4月 16</time>
+    <article id="post-手把手教你栈溢出入门" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/16/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E6%A0%88%E6%BA%A2%E5%87%BA%E5%85%A5%E9%97%A8/" class="article-date">
+  <time class="dt-published" datetime="2021-04-16T11:15:13.522Z" itemprop="datePublished">2021-04-16</time>
 </a>
-      
-    </header>
+    
   </div>
-</article>
-  
+  <div class="article-inner">
     
     
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/04/15/Telling-a-crowd-of-pwner/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-04-15T04:45:12.000Z" itemprop="datePublished">4月 15</time>
-</a>
+    <div class="e-content article-entry" itemprop="articleBody">
       
+        <p>@<a href="%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E6%A0%88%E6%BA%A2%E5%87%BA%E5%85%A5%E9%97%A8">TOC</a></p>
+<h1 id="1-初识漏洞函数"><a href="#1-初识漏洞函数" class="headerlink" title="1.初识漏洞函数"></a>1.初识漏洞函数</h1>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/16/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E6%A0%88%E6%BA%A2%E5%87%BA%E5%85%A5%E9%97%A8/" data-id="cknk7z6tj0000aku6ef5ceiza" data-title="" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Telling-a-crowd-of-pwner" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/15/Telling-a-crowd-of-pwner/" class="article-date">
+  <time class="dt-published" datetime="2021-04-15T04:45:12.000Z" itemprop="datePublished">2021-04-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
     <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/04/15/Telling-a-crowd-of-pwner/">Telling a crowd of pwner（告广大pwn友）</a>
+      <a class="p-name article-title" href="/2021/04/15/Telling-a-crowd-of-pwner/">Telling a crowd of pwner（告广大pwn友）</a>
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
+      </header>
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/04/13/pwn%E5%88%B7%E9%A2%98%E7%BD%91%E7%AB%99%E8%AE%B0%E5%BD%95/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-04-13T12:31:13.004Z" itemprop="datePublished">4月 13</time>
-</a>
+    <div class="e-content article-entry" itemprop="articleBody">
       
+        <p>最近一直观察跟我一起学pwn的朋友，过程十分痛苦。但是只能说，学pwn是一个漫长而又艰辛的过程，要<br>想练好武功，就要扎稳马步，切记急功近利，急于求成。因为，pwner需要的能力涉及广泛。虽然很多人<br>（包括我）在学习栈溢出、格式化字符串、整数溢出、堆溢出等各种招式时特别艰难，但是学习这些招式仅<br>仅是进入pwn海的第一步。在实际漏洞挖掘过程中，程序逻辑纷繁复杂，更需要pwn者将所学所有招式融汇<br>贯通，并且要有十分熟练的逆向功底（这里包括分析C语言和汇编语言程序逻辑的能力、调试能力、对底层<br>细节的掌控能力）。所以，我们入门者在学习pwn的过程中往往过于关注招式的变化，但是C语言、汇编、逆<br>向等能力基础不扎实（即马步不稳），但是这里面每一个能力的炼成都是极为艰难的，马步扎稳了还不够，更<br>要把毕生所学融汇贯通，在各种变换莫测的程序逻辑中利用这些漏洞就更需要高深的漏洞利用能力。所以，在<br>碰到学过招式，知道漏洞，利用不了的情况实属正常。如果把学pwn比作练武，C语言、汇编、逆向、python<br>就是根基，要扎好马步方可与人决斗。而各种漏洞则是招式，从栈溢出到堆溢出全部学完都不能保证你能驰<br>骋沙场。最好的方式就是边学招式边实战。实战是什么？你必须经常性地体验实际程序逻辑，把招式转化为<br>漏洞利用的能力，将战斗持续进行到底，这样才能在pwn海中提升自己的实战能力（即漏洞利用能力）。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><h2 id="pwn海中的能力点"><a href="#pwn海中的能力点" class="headerlink" title="pwn海中的能力点"></a>pwn海中的能力点</h2><h3 id="1-扎马步：C语言、汇编、逆向调试、python"><a href="#1-扎马步：C语言、汇编、逆向调试、python" class="headerlink" title="1.扎马步：C语言、汇编、逆向调试、python"></a>1.扎马步：C语言、汇编、逆向调试、python</h3><h3 id="2-练招式：研究各种漏洞的利用技巧"><a href="#2-练招式：研究各种漏洞的利用技巧" class="headerlink" title="2.练招式：研究各种漏洞的利用技巧"></a>2.练招式：研究各种漏洞的利用技巧</h3><h3 id="3-实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。"><a href="#3-实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。" class="headerlink" title="3.实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。"></a>3.实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。</h3><p>Add:<br>所有的pwner都是不可埋没的人才，极具价值。但赛场只是擂台，磨炼功底。只要我们把时间跨度放得更宽，<br>更远，我们看到的应该不仅是赛场上那诱人的奖项，我们更应该看到属于我们诗和远方，那里自有容纳每一位<br>pwner的舞台，每一个pwner都将闪闪发光。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/15/Telling-a-crowd-of-pwner/" data-id="cknk857u600008ku6hd9q0mrf" data-title="Telling a crowd of pwner（告广大pwn友）" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-pwn刷题网站记录" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/13/pwn%E5%88%B7%E9%A2%98%E7%BD%91%E7%AB%99%E8%AE%B0%E5%BD%95/" class="article-date">
+  <time class="dt-published" datetime="2021-04-13T12:31:13.004Z" itemprop="datePublished">2021-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
     <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/04/13/pwn%E5%88%B7%E9%A2%98%E7%BD%91%E7%AB%99%E8%AE%B0%E5%BD%95/">pwn刷题网站记录</a>
+      <a class="p-name article-title" href="/2021/04/13/pwn%E5%88%B7%E9%A2%98%E7%BD%91%E7%AB%99%E8%AE%B0%E5%BD%95/">pwn刷题网站记录</a>
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
+      </header>
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/04/13/hello-world/" class="archive-article-date">
-  <time class="dt-published" datetime="2021-04-13T12:17:12.173Z" itemprop="datePublished">4月 13</time>
-</a>
+    <div class="e-content article-entry" itemprop="articleBody">
       
-    </header>
+        <h3 id="XCTF攻防世界"><a href="#XCTF攻防世界" class="headerlink" title="XCTF攻防世界"></a>XCTF攻防世界</h3><h3 id="BUUCTF"><a href="#BUUCTF" class="headerlink" title="BUUCTF"></a>BUUCTF</h3><h3 id="BMZCTF"><a href="#BMZCTF" class="headerlink" title="BMZCTF"></a>BMZCTF</h3><h3 id="pwnable-tw"><a href="#pwnable-tw" class="headerlink" title="pwnable.tw"></a>pwnable.tw</h3>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/13/pwn%E5%88%B7%E9%A2%98%E7%BD%91%E7%AB%99%E8%AE%B0%E5%BD%95/" data-id="ckng0cbpp0000zku6ghbw4mth" data-title="pwn刷题网站记录" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
   </div>
+  
 </article>
+
+
+
   
+    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/13/hello-world/" class="article-date">
+  <time class="dt-published" datetime="2021-04-13T12:17:12.173Z" itemprop="datePublished">2021-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/13/hello-world/" data-id="cknfzh51b0000fcu65lu872ci" data-title="" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
   
-    </div></section>
+</article>
+
+
+
   
 
 

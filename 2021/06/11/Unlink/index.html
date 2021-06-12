@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Unlink | Deep Pwn Sea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Unlink我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作来达成修改指针的效果。 我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。 古老的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unlink">
+<meta property="og:url" content="http://example.com/2021/06/11/Unlink/index.html">
+<meta property="og:site_name" content="Deep Pwn Sea">
+<meta property="og:description" content="Unlink我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作来达成修改指针的效果。 我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。 古老的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/06/11/Unlink/1.png">
+<meta property="og:image" content="http://example.com/2021/06/11/Unlink/2.png">
+<meta property="og:image" content="http://example.com/2021/06/11/Unlink/3.png">
+<meta property="article:published_time" content="2021-06-11T16:17:03.000Z">
+<meta property="article:modified_time" content="2021-06-12T08:43:28.834Z">
+<meta property="article:author" content="热爱生活的Sakura">
+<meta property="article:tag" content="网络安全、二进制、pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/11/Unlink/1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Deep Pwn Sea" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Deep Pwn Sea</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Unlink" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/11/Unlink/" class="article-date">
+  <time class="dt-published" datetime="2021-06-11T16:17:03.000Z" itemprop="datePublished">2021-06-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Unlink
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Unlink"><a href="#Unlink" class="headerlink" title="Unlink"></a>Unlink</h1><p>我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作<br>来达成修改指针的效果。</p>
+<p>我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来<br>（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：<br><img src="/2021/06/11/Unlink/1.png" alt="1.png"><br>下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。</p>
+<h3 id="古老的unlink"><a href="#古老的unlink" class="headerlink" title="古老的unlink"></a>古老的unlink</h3><p>最初unlink实现的时候，其实是没有对chunk的size检查和双向链表检查的，即没有如下检查<br>代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于 P 已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致(size检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">      malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br><span class="line"><span class="comment">// 检查 fd 和 bk 指针(双向链表完整性检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br><span class="line"></span><br><span class="line">  <span class="comment">// largebin 中 next_size 双向链表完整性检查 </span></span><br><span class="line">              <span class="keyword">if</span> (__builtin_expect (P-&gt;fd_nextsize-&gt;bk_nextsize != P, <span class="number">0</span>)              \</span><br><span class="line">                || __builtin_expect (P-&gt;bk_nextsize-&gt;fd_nextsize != P, <span class="number">0</span>))    \</span><br><span class="line">              malloc_printerr (check_action,                                      \</span><br><span class="line">                               <span class="string">&quot;corrupted double-linked list (not small)&quot;</span>,    \</span><br><span class="line">                               P, AV);</span><br></pre></td></tr></table></figure>
+<p>这里我们以32位为例，假设堆内存最初的布局是下面的样子<br><img src="/2021/06/11/Unlink/2.png" alt="2.png"><br>现在有物理空间连续的两个chunk（Q,Nextchunk），其中Q处于使用状态、Nextchunk<br>处于释放状态。那么如果我们通过某种方式（比如溢出）将Nextchunk的fd和bk指针修改为<br>指定的值。则当我们free(Q)时<br>①glibc判断这个块是small chunk<br>②判断向前合并，发现前一个chunk处于使用状态，不需要向前合并<br>③判断向后合并，发现后一个chunk处于空闲状态，需要合并<br>④继而对Nextchunk采取unlink操作<br>那么unlink具体执行的效果是什么样子呢？<br>①FD=P-&gt;fd = target addr -12<br>②BK=P-&gt;bk = expect value<br>③FD-&gt;bk = BK，即 *(target addr-12+12)=BK=expect value<br>④BK-&gt;fd = FD，即 *(expect value +8) = FD = target addr-12<br>看起来我们似乎可以通过unlink直接实现任意地址读写目的，但是我们还是需要确保expect<br>value+8的地址具有可写权限。</p>
+<p>比如说我们将target addr 设置成某个got表项，那么当程序调用对应的Libc函数时，就会直接<br>执行我们设置的值（expect value）处的代码。需要注意的是，expect value+8处的值被破坏<br>了，需要想办法绕过。</p>
+<h3 id="当前的unlink"><a href="#当前的unlink" class="headerlink" title="当前的unlink"></a>当前的unlink</h3><p>我们刚才考虑的是没有检查的情况，但是一旦加上检查，就没有这么简单了。我们对比一下<br>fd和bk的检查</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fd bk</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br></pre></td></tr></table></figure>
+<p>此时<br>①FD-&gt;bk = target addr - 12 + 12=target_addr<br>②BK-&gt;fd = expect value + 8<br>那么我们上面所利用的修改GOT表项的方法就可能不可用了。但是我们可以通过伪造的方式<br>绕过这个机制。<br>首先我们通过覆盖，将nextchunk的FD指针指向了fakeFD，将nextchunk的BX指针指向了<br>fakeBK。那么为了通过验证，我们需要<br>①fakeFD -&gt; bk == P &lt;=&gt; *(fakeFD + 12) == P<br>②fakeBK -&gt; fd == P &lt;=&gt; *(fakeBK + 8) == P<br>当满足上述两个式子时，可以进入unlink环节，进行如下操作：<br>①fakeFD -&gt; bk = fakeBK &lt;=&gt; <em>(fakeFD + 12) = fakeBK<br>②fakeBK -&gt; fd = fakeFD &lt;=&gt; <em>(fakeBK + 8) = fakeFD<br>如果让fakeFD+12和fakeBK+8指向同一个指向P的指针，那么：<br>①</em>P = P - 8<br>②</em>P = P - 12<br>即通过此方式，P的指针指向了比自己低12的地址处。此方法虽然不可以实现任意地址写，<br>但是可以修改指向chunk的指针，这样的修改是可以达到一定的效果的。</p>
+<p>如果我们想要使得两者都指向P，只需要按照如下方式修改即可<br><img src="/2021/06/11/Unlink/3.png" alt="3.png"><br>需要注意的是，这里我们并没有违背下面的约束，因为P在unlink前是指向正确的chunk的<br>指针。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于P已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致。</span></span><br><span class="line">   <span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">     malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br></pre></td></tr></table></figure>
+<p><strong>此外，其实如果我们设置next chunk的fd和bk均为nextchunk的地址也是可以绕过上面的<br>检测的。但是这样的话，并不能达到修改指针内容的效果。</strong></p>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><h5 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h5><p>1、UAF，可修改free状态下smallbin或是unsorted bin 的fd和Bk指针<br>2、一直位置存在一个指针指向可进行UAF的chunk</p>
+<h5 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h5><p>使得已指向UAF chunk的指针ptr变为ptr-0x18</p>
+<h5 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h5><p>设指向可UAF chunk的指针的地址为ptr<br>①修改fd为 ptr-0x18<br>②修改bk为ptr-0x10<br>③触发unlink<br>ptr处的指针会变为Ptr-0x18</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/11/Unlink/" data-id="ckptiht2m00002cu61v1t7jhd" data-title="Unlink" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/11/off-by-one/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">Off-by-One</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/11/Unlink/">Unlink</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/11/off-by-one/">Off-by-One</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
+          </li>
+        
+          <li>
+            <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/">UAF漏洞初探</a>
+          </li>
+        
+          <li>
+            <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 热爱生活的Sakura<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

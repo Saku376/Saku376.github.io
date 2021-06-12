@@ -78,9 +78,69 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-off-by-one" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/11/off-by-one/" class="article-date">
+  <time class="dt-published" datetime="2021-06-11T15:40:43.000Z" itemprop="datePublished">2021-06-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/11/off-by-one/">Off-by-One</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="堆溢出之off-by-one"><a href="#堆溢出之off-by-one" class="headerlink" title="堆溢出之off by one"></a>堆溢出之off by one</h1><h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>严格来说off-by-one漏洞是一种特殊的溢出漏洞，off by one 指向缓冲区中写入时，写入<br>的字节数超过了这个缓冲区本身所申请的字节数并且只越界了一个字节。</p>
+<h3 id="off-by-one-漏洞原理"><a href="#off-by-one-漏洞原理" class="headerlink" title="off by one 漏洞原理"></a>off by one 漏洞原理</h3><p>off by one是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，<br>当然也不排除写入的size就只多了一个字节的情况。其中边界验证不严通常包括：</p>
+<p>①使用循环语句向堆块中写入数据时，循环的次数设置错误导致多写入了一个字节<br>②字符串操作不合适</p>
+<p>一般来说，单字节溢出被认为是难以利用的，但是因为Linux的堆管理机制ptmalloc验证的<br>松散性，基于linux堆的off-by-one漏洞利用起来并不复杂，并且威力强大。此外，需要说明<br>的一点是off-by-one是可以基于各种缓冲区的，比如栈、bss段等，但在堆上的off by one<br>是CTF中比较常见的。</p>
+<h3 id="off-by-one利用思路"><a href="#off-by-one利用思路" class="headerlink" title="off-by-one利用思路"></a>off-by-one利用思路</h3><p>1、溢出字节为可控制字节：通过修改大小造成结构之间出现重叠，从而泄露出其他块数据，<br>或是覆盖其他块数据。也可使用NULL字节溢出的方法。</p>
+<p>2、溢出字节为NULL字节：在size为0x100的时候，溢出NULL字节可以使得prev_in_use位<br>被清，这样前块会被认为是free块。<br>(1)这时可以选择使用unlink方法进行处理<br>(2)另外，这时prev_size域就会启用，就可以伪造prev_size，从而造成块之间发生重叠。此<br>方法的关键在于unlink的时候没有检查按照prev_size找到的块的大小与prev_size是否一致。</p>
+<p>示例1<br>C</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">my_gets</span><span class="params">(<span class="keyword">char</span> *ptr,<span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=size;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        ptr[i]=getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *chunk1,*chunk2;</span><br><span class="line">    chunk1=<span class="built_in">malloc</span>(<span class="number">16</span>);</span><br><span class="line">    chunk2=<span class="built_in">malloc</span>(<span class="number">16</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Get Input:&quot;</span>);</span><br><span class="line">    my_gets(chunk1,<span class="number">16</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>my_gets函数导致了一个off by one 漏洞，原因是for循环的边界没有控制好导致写入多执行<br>了一次，这也被称为栅栏错误。</p>
+<p>我们使用gdb对程序进行调试，在进行输入前可以看到分配的两个用户区域为16字节的堆块</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602020:   0x0000000000000000  0x0000000000000021 &lt;=== chunk2</span><br><span class="line">0x602030:   0x0000000000000000  0x0000000000000000</span><br></pre></td></tr></table></figure>
+<p>当我们执行my_gets进行输入之后，可以看到数据发生了溢出覆盖到了下一个堆块的prev_size<br>域print ‘A’*17</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x4141414141414141  0x4141414141414141</span><br><span class="line">0x602020:   0x0000000000000041  0x0000000000000021 &lt;=== chunk2</span><br><span class="line">0x602030:   0x0000000000000000  0x0000000000000000</span><br></pre></td></tr></table></figure>
+
+<p>示例2<br>第二种常见的导致off-by-one的场景就是字符串操作了，常见的原因就是字符串的结束符<br>计算有误</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buffer[<span class="number">40</span>]=<span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">void</span> *chunk1;</span><br><span class="line">    chunk1=<span class="built_in">malloc</span>(<span class="number">24</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Get Input&quot;</span>);</span><br><span class="line">    gets(buffer);</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">strlen</span>(buffer)==<span class="number">24</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(chunk1,buffer);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序咋看上去没有任何问题，但是strlen和strcpy的行为不一致却导致了off-by-one的发生。<br>strlen是我们很熟悉的计算ascii字符串长度的函数，这个函数在计算字符串长度时是不把结束符<br>‘\x00’计算在内的，但是strcpy在复制字符串时会拷贝结束符’\x00’。这就导致了我们向chunk1<br>中写入了25个字节，我们使用gdb进行调试可以看到这一点。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602020:   0x0000000000000000  0x0000000000000411 &lt;=== next chunk</span><br></pre></td></tr></table></figure>
+<p>我们输入’A’*24后执行strcpy</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021</span><br><span class="line">0x602010:   0x4141414141414141  0x4141414141414141</span><br><span class="line">0x602020:   0x4141414141414141  0x0000000000000400</span><br></pre></td></tr></table></figure>
+<p>可以看到next chunk的size域低字节被结束符’\x00’覆盖，这种有属于Off by one 的一个分支<br>称为NULL byte off by one ，在后面我们会看到off-by-one与NULL byte off-by-one在<br>利用上的区别。还是有一点就是为什么是低字节被覆盖呢，因为我们通常使用的CPU的字节<br>序都是小端法的，比如DWORD值在使用小端法的内存中是这样存储的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DWORD 0x41424344</span><br><span class="line">内存  0x44,0x43,0x42,0x41</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/11/off-by-one/" data-id="ckpth97xj0000c8u68cdn5dxq" data-title="Off-by-One" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-2021CISCN-PWN题" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/06/2021CISCN-PWN%E9%A2%98/" class="article-date">
+    <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/" class="article-date">
   <time class="dt-published" datetime="2021-06-06T02:13:20.000Z" itemprop="datePublished">2021-06-06</time>
 </a>
     
@@ -92,7 +152,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/06/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
+      <a class="p-name article-title" href="/2021/06/05/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
     </h1>
   
 
@@ -118,7 +178,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/06/2021CISCN-PWN%E9%A2%98/" data-id="ckpkk65qa00004cu67rbt8phr" data-title="2021CISCN_PWN题" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/06/05/2021CISCN-PWN%E9%A2%98/" data-id="ckpkk65qa00004cu67rbt8phr" data-title="2021CISCN_PWN题" class="article-share-link">分享</a>
       
       
       
@@ -180,7 +240,7 @@
   
     <article id="post-人活着就是为了——北京邮电大学" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/05/03/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" class="article-date">
+    <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" class="article-date">
   <time class="dt-published" datetime="2021-05-03T04:24:41.000Z" itemprop="datePublished">2021-05-03</time>
 </a>
     
@@ -192,7 +252,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/03/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
+      <a class="p-name article-title" href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
     </h1>
   
 
@@ -211,7 +271,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/03/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" data-id="cko85vl2f0000q0u66krldx5t" data-title="人活着就是为了——北京邮电大学" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" data-id="cko85vl2f0000q0u66krldx5t" data-title="人活着就是为了——北京邮电大学" class="article-share-link">分享</a>
       
       
       
@@ -225,7 +285,7 @@
   
     <article id="post-堆溢出必备基础——Glibc内存管理（1）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
+    <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
   <time class="dt-published" datetime="2021-05-02T05:20:27.000Z" itemprop="datePublished">2021-05-02</time>
 </a>
     
@@ -237,7 +297,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
+      <a class="p-name article-title" href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
     </h1>
   
 
@@ -258,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
       
       
       
@@ -427,7 +487,7 @@
   
     <article id="post-格式化字符串之CTFwiki-goodluck" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" class="article-date">
+    <a href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" class="article-date">
   <time class="dt-published" datetime="2021-04-24T06:58:00.000Z" itemprop="datePublished">2021-04-24</time>
 </a>
     
@@ -439,7 +499,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/">格式化字符串之CTFwiki-Goodluck</a>
+      <a class="p-name article-title" href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/">格式化字符串之CTFwiki-Goodluck</a>
     </h1>
   
 
@@ -455,7 +515,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" data-id="cknvemjlo0000kcu6b6voccln" data-title="格式化字符串之CTFwiki-Goodluck" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" data-id="cknvemjlo0000kcu6b6voccln" data-title="格式化字符串之CTFwiki-Goodluck" class="article-share-link">分享</a>
       
       
       
@@ -494,47 +554,6 @@
     </div>
     <footer class="article-footer">
       <a data-url="http://example.com/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" data-id="cknq0526u00000wu69vo5fri6" data-title="Pwn学习谷歌关键词" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-那些你不知道的gdb调试" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/" class="article-date">
-  <time class="dt-published" datetime="2021-04-19T12:01:46.000Z" itemprop="datePublished">2021-04-19</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/">那些你不知道的Gdb调试</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="直接插上CGfsb伪代码"><a href="#直接插上CGfsb伪代码" class="headerlink" title="直接插上CGfsb伪代码"></a>直接插上CGfsb伪代码</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">int __cdecl main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  int buf; // [esp+1Eh] [ebp-7Eh]</span><br><span class="line">  int v5; // [esp+22h] [ebp-7Ah]</span><br><span class="line">  __int16 v6; // [esp+26h] [ebp-76h]</span><br><span class="line">  char s; // [esp+28h] [ebp-74h]</span><br><span class="line">  unsigned int v8; // [esp+8Ch] [ebp-10h]</span><br><span class="line"></span><br><span class="line">  v8 = __readgsdword(0x14u);</span><br><span class="line">  setbuf(stdin, 0);</span><br><span class="line">  setbuf(stdout, 0);</span><br><span class="line">  setbuf(stderr, 0);</span><br><span class="line">  buf = 0;</span><br><span class="line">  v5 = 0;</span><br><span class="line">  v6 = 0;</span><br><span class="line">  memset(&amp;s, 0, 0x64u);</span><br><span class="line">  puts(<span class="string">&quot;please tell me your name:&quot;</span>);</span><br><span class="line">  <span class="built_in">read</span>(0, &amp;buf, 0xAu);</span><br><span class="line">  puts(<span class="string">&quot;leave your message please:&quot;</span>);</span><br><span class="line">  fgets(&amp;s, 100, stdin);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;hello %s&quot;</span>, &amp;buf);</span><br><span class="line">  puts(<span class="string">&quot;your message is:&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(&amp;s);</span><br><span class="line">  <span class="keyword">if</span> ( pwnme == 8 )</span><br><span class="line">  &#123;</span><br><span class="line">    puts(<span class="string">&quot;you pwned me, here is your flag:\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;cat flag&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    puts(<span class="string">&quot;Thank you!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我要调试的是printf指令，这里有两个，我们先调试第一个 printf(“hello %s”, &amp;buf);<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/1.png" alt="1.png"><br>我们将断点先下在第一个断点处，名字输入sakura，信息填message，回车<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/2.png" alt="2.png"><br>你会在backtrace处发现两个栈帧，__libc_start_main栈帧和main栈帧<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/3.png" alt="3.png"><br>注意这个时候的栈信息，栈里面先把sakura对应的地址和格式化字符串分别入栈<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/4.png" alt="4.png"><br>通过step指令由main栈帧进入printf栈帧<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/5.png" alt="5.png"><br>此时的backtrace是<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/6.png" alt="6.png"><br>此时的栈是<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/7.png" alt="7.png"><br>其中栈中的第一行为返回地址，这是创建printf栈帧后才出现的，其余两个参数不变。<br>我们再输入frame f 1<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/8.png" alt="8.png"><br>使程序回到main栈帧，重复执行上述断点<br><img src="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/9.png" alt="9.png"><br>你会发现，返回地址无了。</p>
-<h3 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h3><p>gdb调试时，要分清哪些是地址，哪些是数据，其中字符串信息的传递是通过指向字符串的地址传递的。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/" data-id="cknokoh2r0000cwu63nio06w8" data-title="那些你不知道的Gdb调试" class="article-share-link">分享</a>
       
       
       
@@ -596,7 +615,11 @@
       <ul>
         
           <li>
-            <a href="/2021/06/06/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
+            <a href="/2021/06/11/off-by-one/">Off-by-One</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
           </li>
         
           <li>
@@ -604,15 +627,11 @@
           </li>
         
           <li>
-            <a href="/2021/05/03/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
+            <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
           </li>
         
           <li>
-            <a href="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
-          </li>
-        
-          <li>
-            <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/">通过GDB调试理解GOT表和PLT表</a>
+            <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
           </li>
         
       </ul>

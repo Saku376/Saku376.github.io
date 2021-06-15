@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Fastbin | Saku376&#39;s Pwn Sea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Fastbin大多数程序经常会申请以及释放比较小的内存块。如果将一些较小的chunk释放之后发现存在与之相邻的空闲chunk并将它们进行合并，那么当下一次再次申请相应大小的chunk时，就需要对chunk进行分割，这样就大大降低了堆的利用效率。因为我们把大部分时间花在了合并、分割以及中间检查的过程中。因此,ptmalloc中专门设计了fastbin，对应的变量就是malloc state中的fas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fastbin">
+<meta property="og:url" content="http://example.com/2021/06/14/bin/index.html">
+<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
+<meta property="og:description" content="Fastbin大多数程序经常会申请以及释放比较小的内存块。如果将一些较小的chunk释放之后发现存在与之相邻的空闲chunk并将它们进行合并，那么当下一次再次申请相应大小的chunk时，就需要对chunk进行分割，这样就大大降低了堆的利用效率。因为我们把大部分时间花在了合并、分割以及中间检查的过程中。因此,ptmalloc中专门设计了fastbin，对应的变量就是malloc state中的fas">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-14T15:43:00.000Z">
+<meta property="article:modified_time" content="2021-06-15T09:06:36.967Z">
+<meta property="article:author" content="Saku376">
+<meta property="article:tag" content="网络安全、二进制、pwn">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-bin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/14/bin/" class="article-date">
+  <time class="dt-published" datetime="2021-06-14T15:43:00.000Z" itemprop="datePublished">2021-06-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Fastbin
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="Fastbin"><a href="#Fastbin" class="headerlink" title="Fastbin"></a>Fastbin</h3><p>大多数程序经常会申请以及释放比较小的内存块。如果将一些较小的chunk释放之后发现存<br>在与之相邻的空闲chunk并将它们进行合并，那么当下一次再次申请相应大小的chunk时，<br>就需要对chunk进行分割，这样就大大降低了堆的利用效率。因为我们把大部分时间花在了<br>合并、分割以及中间检查的过程中。因此,ptmalloc中专门设计了fastbin，对应的变量就是<br>malloc state中的fastbinY</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">   Fastbins</span><br><span class="line"></span><br><span class="line">    An array of lists holding recently freed small chunks.  Fastbins</span><br><span class="line">    are not doubly linked.  It is faster to single-link them, and</span><br><span class="line">    since chunks are never removed from the middles of these lists,</span><br><span class="line">    double linking is not necessary. Also, unlike regular bins, they</span><br><span class="line">    are not even processed <span class="keyword">in</span> FIFO order (they use faster LIFO) since</span><br><span class="line">    ordering doesn<span class="string">&#x27;t much matter in the transient contexts in which</span></span><br><span class="line"><span class="string">    fastbins are normally used.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Chunks in fastbins keep their inuse bit set, so they cannot</span></span><br><span class="line"><span class="string">    be consolidated with other free chunks. malloc_consolidate</span></span><br><span class="line"><span class="string">    releases all chunks in fastbins and consolidates them with</span></span><br><span class="line"><span class="string">    other free chunks.</span></span><br><span class="line"><span class="string"> */</span></span><br><span class="line"><span class="string">typedef struct malloc_chunk *mfastbinptr;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">/*</span></span><br><span class="line"><span class="string">    This is in malloc_state.</span></span><br><span class="line"><span class="string">    /* Fastbins */</span></span><br><span class="line"><span class="string">    mfastbinptr fastbinsY[ NFASTBINS ];</span></span><br><span class="line"><span class="string">*/</span></span><br></pre></td></tr></table></figure>
+<p>为了更加高效地利用fastbin，glibc采用单向链表对其中的每一个Bin进行组织，并且每个<br>bin采取LIFO，最近释放的chunk会更早地被分配，所以会增加适用于局部性。也就是说，<br>当用户需要的chunk的大小小于fastbin的最大大小时，ptmalloc会首先判断fastbin中相应<br>的bin中是否有对应大小的空闲块，如果有的话，就去直接从这个bin中获取chunk。如果<br>没有的话，Ptmalloc才会做接下来的一系列操作。</p>
+<p>默认情况下（32位系统为例），fastbin中默认支持最大的chunk的数据空间大小为64字节。<br>但是其可以支持的chunk的数据空间最大为80字节。除此之外，fastbin最多可以支持的Bin<br>的个数为10个，从数据空间为8个字节开始一直到80字节（主义这里说的是数据空间大小，<br>也即除去prev_size和size字段部分的大小）定义如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NFASTBINS (fastbin_index(request2size(MAX_FAST_SIZE)) + 1)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> DEFAULT_MXFAST</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_MXFAST (64 * SIZE_SZ / 4)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The maximum fastbin request size we support */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_FAST_SIZE (80 * SIZE_SZ / 4)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Since the lowest 2 bits in max_fast don&#x27;t matter in size comparisons,</span></span><br><span class="line"><span class="comment">   they are used as flags.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   FASTCHUNKS_BIT held in max_fast indicates that there are probably</span></span><br><span class="line"><span class="comment">   some fastbin chunks. It is set true on entering a chunk into any</span></span><br><span class="line"><span class="comment">   fastbin, and cleared only in malloc_consolidate.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   The truth value is inverted so that have_fastchunks will be true</span></span><br><span class="line"><span class="comment">   upon startup (since statics are zero-filled), simplifying</span></span><br><span class="line"><span class="comment">   initialization checks.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">//判断分配区是否有 fast bin chunk，1表示没有</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FASTCHUNKS_BIT (1U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> have_fastchunks(M) (((M)-&gt;flags &amp; FASTCHUNKS_BIT) == 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> clear_fastchunks(M) catomic_or(&amp;(M)-&gt;flags, FASTCHUNKS_BIT)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_fastchunks(M) catomic_and(&amp;(M)-&gt;flags, ~FASTCHUNKS_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   NONCONTIGUOUS_BIT indicates that MORECORE does not return contiguous</span></span><br><span class="line"><span class="comment">   regions.  Otherwise, contiguity is exploited in merging together,</span></span><br><span class="line"><span class="comment">   when possible, results from consecutive MORECORE calls.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   The initial value comes from MORECORE_CONTIGUOUS, but is</span></span><br><span class="line"><span class="comment">   changed dynamically if mmap is ever used as an sbrk substitute.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">// MORECORE是否返回连续的内存区域。</span></span><br><span class="line"><span class="comment">// 主分配区中的MORECORE其实为sbr()，默认返回连续虚拟地址空间</span></span><br><span class="line"><span class="comment">// 非主分配区使用mmap()分配大块虚拟内存，然后进行切分来模拟主分配区的行为</span></span><br><span class="line"><span class="comment">// 而默认情况下mmap映射区域是不保证虚拟地址空间连续的，所以非主分配区默认分配非连续虚拟地址空间。</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NONCONTIGUOUS_BIT (2U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> contiguous(M) (((M)-&gt;flags &amp; NONCONTIGUOUS_BIT) == 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> noncontiguous(M) (((M)-&gt;flags &amp; NONCONTIGUOUS_BIT) != 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_noncontiguous(M) ((M)-&gt;flags |= NONCONTIGUOUS_BIT)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_contiguous(M) ((M)-&gt;flags &amp;= ~NONCONTIGUOUS_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* ARENA_CORRUPTION_BIT is set if a memory corruption was detected on the</span></span><br><span class="line"><span class="comment">   arena.  Such an arena is no longer used to allocate chunks.  Chunks</span></span><br><span class="line"><span class="comment">   allocated in that arena before detecting corruption are not freed.  */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ARENA_CORRUPTION_BIT (4U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> arena_is_corrupt(A) (((A)-&gt;flags &amp; ARENA_CORRUPTION_BIT))</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_arena_corrupt(A) ((A)-&gt;flags |= ARENA_CORRUPTION_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Set value of max_fast.</span></span><br><span class="line"><span class="comment">   Use impossibly small value if 0.</span></span><br><span class="line"><span class="comment">   Precondition: there are no existing fastbin chunks.</span></span><br><span class="line"><span class="comment">   Setting the value clears fastchunk bit but preserves noncontiguous bit.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_max_fast(s)                                                        \</span></span><br><span class="line">    global_max_fast =                                                          \</span><br><span class="line">        (((s) == <span class="number">0</span>) ? SMALLBIN_WIDTH : ((s + SIZE_SZ) &amp; ~MALLOC_ALIGN_MASK))</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> get_max_fast() global_max_fast</span></span><br></pre></td></tr></table></figure>
+<p>ptmalloc默认情况下会调用set_max_fast(s)将全局变量global_max_fast设置为DEFAULT_<br>MXFAST,也就是设置fast bins 中chunk的最大值。当MAX_FAST_SIZE被设置为0时，系统<br>就不会支持fastbin。</p>
+<p><strong>fastbin的索引</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define fastbin(ar_ptr, idx) ((ar_ptr)-&gt;fastbinsY[ idx ])</span></span><br><span class="line"></span><br><span class="line">/* offset 2 to use otherwise unindexable first 2 bins */</span><br><span class="line">// chunk size=2*size_sz*(2+idx)</span><br><span class="line">// 这里要减2，否则的话，前两个bin没有办法索引到。</span><br><span class="line"><span class="comment">#define fastbin_index(sz)                                                      \</span></span><br><span class="line">    ((((unsigned int) (sz)) &gt;&gt; (SIZE_SZ == 8 ? 4 : 3)) - 2)</span><br></pre></td></tr></table></figure>
+<p>需要特别注意的是，fastbin范围的chunk的inuse始终被置为1。因此它们不会和其它被释放<br>的chunk合并。<br>但是当释放的chunk与该chunk相邻的空闲chunk合并后的大小大于FASTBIN_CONSOLIDATION_<br>THRESHOLD时，内存碎片可能比较多了，我们就需要把fastbins中的chunk都进行合并，<br>以减少内存碎片对系统的影响。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">   FASTBIN_CONSOLIDATION_THRESHOLD is the size of a chunk <span class="keyword">in</span> free()</span><br><span class="line">   that triggers automatic consolidation of possibly-surrounding</span><br><span class="line">   fastbin chunks. This is a heuristic, so the exact value should not</span><br><span class="line">   matter too much. It is defined at half the default trim threshold as a</span><br><span class="line">   compromise heuristic to only attempt consolidation <span class="keyword">if</span> it is likely</span><br><span class="line">   to lead to trimming. However, it is not dynamically tunable, since</span><br><span class="line">   consolidation reduces fragmentation surrounding large chunks even</span><br><span class="line">   <span class="keyword">if</span> trimming is not used.</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line"><span class="comment">#define FASTBIN_CONSOLIDATION_THRESHOLD (65536UL)</span></span><br></pre></td></tr></table></figure>
+<p>malloc_consolidate函数可以将fastbin中所有能和其它合并的chunk合并在一起。<br>具体地参见后续的详细函数的分析。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    Chunks in fastbins keep their inuse bit set, so they cannot</span></span><br><span class="line"><span class="comment">    be consolidated with other free chunks. malloc_consolidate</span></span><br><span class="line"><span class="comment">    releases all chunks in fastbins and consolidates them with</span></span><br><span class="line"><span class="comment">    other free chunks.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>small bin</strong><br>small bins中每个chunk的大小与其所在的bin的index的关系为：chunk_size=2*SIZE_SZ<br>*index，具体如下</p>
+<hr>
+<p>下标          SIZE_SZ=4(32位)          SIZE_SZ=8(64位)<br>2                     16                                  32<br>3                     24                                  48<br>4                     32                                  64<br>5                     40                                  80<br>x                     2<em>4</em>x                              2<em>8</em>x<br>63                   504                                1008</p>
+<hr>
+<p>small bins中一共有62个循环双向链表，每个链表中存储的chunk大小都一致。比如对于32<br>位系统来说，下标2对应的双向链表中存储的chunk大小均为16个字节。每个链表都有链表头<br>结点，这样可以方便对于链表内部结点的管理。此外，small bins中每个Bin对应的链表采用<br>FIFO的规则，所以同一个链表中先被释放的chunk会先被分配出去。</p>
+<p>small bin相关的宏如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NSMALLBINS 64</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMALLBIN_WIDTH MALLOC_ALIGNMENT</span></span><br><span class="line"><span class="comment">// 是否需要对small bin的下标进行纠正</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMALLBIN_CORRECTION (MALLOC_ALIGNMENT &gt; 2 * SIZE_SZ)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MIN_LARGE_SIZE ((NSMALLBINS - SMALLBIN_CORRECTION) * SMALLBIN_WIDTH)</span></span><br><span class="line"><span class="comment">//判断chunk的大小是否在small bin范围内</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> in_smallbin_range(sz)                                                  \</span></span><br><span class="line">    ((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz) &lt; (<span class="keyword">unsigned</span> <span class="keyword">long</span>) MIN_LARGE_SIZE)</span><br><span class="line"><span class="comment">// 根据chunk的大小得到small bin对应的索引。</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> smallbin_index(sz)                                                     \</span></span><br><span class="line">    ((SMALLBIN_WIDTH == <span class="number">16</span> ? (((<span class="keyword">unsigned</span>) (sz)) &gt;&gt; <span class="number">4</span>)                          \</span><br><span class="line">                           : (((<span class="keyword">unsigned</span>) (sz)) &gt;&gt; <span class="number">3</span>)) +                       \</span><br><span class="line">     SMALLBIN_CORRECTION)</span><br></pre></td></tr></table></figure>
+<p>或许，大家会很疑惑，那fastbin与smallbin中的大小会有很大一部分重合啊，那smallbin中<br>对应大小的bin是不是就没有什么作用啊？其实不然，fastbin中的chunk是有可能被放到<br>smallbin中去的，我们在后面分析具体的源代码时会有深刻体会。</p>
+<h3 id="Largebin"><a href="#Largebin" class="headerlink" title="Largebin"></a>Largebin</h3><p>largebins中一共包括63个bin，每一个bin中的chunk的大小不一致，而是处于一定区间范围<br>内。此外，这63个bin被分成了6组，每组bin中的chunk大小之间的公差一致，具体如下：</p>
+<hr>
+<p>组                     数量                 公差<br>1                        32                   64B<br>2                        16                   512B<br>3                         8                    4096B<br>4                         4                    32768B<br>5                         2                    262144B<br>6                         1                    不限制</p>
+<hr>
+<p>这里我们以32位平台的largebin为例，第一个largebin的起始chunk大小为512个字节，位于<br>第一组，所以该bin可以存储的chunk的大小范围为[512,512+64)</p>
+<p>关于large bin的宏如下，这里我们以32位平台下，第一个largebin的起始chunk大小为例子，<br>为512字节，那么512&gt;&gt;6=8，所以其下标为56+8=64。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_32(sz)                                                  \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">38</span>)                                     \</span><br><span class="line">         ? <span class="number">56</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_32_big(sz)                                              \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">45</span>)                                     \</span><br><span class="line">         ? <span class="number">49</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// XXX It remains to be seen whether it is good to keep the widths of</span></span><br><span class="line"><span class="comment">// XXX the buckets the same or whether it should be scaled by a factor</span></span><br><span class="line"><span class="comment">// XXX of two as well.</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_64(sz)                                                  \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">48</span>)                                     \</span><br><span class="line">         ? <span class="number">48</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index(sz)                                                     \</span></span><br><span class="line">    (SIZE_SZ == <span class="number">8</span> ? largebin_index_64(sz) : MALLOC_ALIGNMENT == <span class="number">16</span>             \</span><br><span class="line">                                                ? largebin_index_32_big(sz)    \</span><br><span class="line">                                                : largebin_index_32(sz))</span><br></pre></td></tr></table></figure>
+<h3 id="unsorted-bin"><a href="#unsorted-bin" class="headerlink" title="unsorted bin"></a>unsorted bin</h3><p>unsorted bin可以视为空闲chunk回归其所属bin之前的缓冲区。<br>其在glibc中具体的说明如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Unsorted chunks</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    All remainders from chunk splits, as well as all returned chunks,</span></span><br><span class="line"><span class="comment">    are first placed in the &quot;unsorted&quot; bin. They are then placed</span></span><br><span class="line"><span class="comment">    in regular bins after malloc gives them ONE chance to be used before</span></span><br><span class="line"><span class="comment">    binning. So, basically, the unsorted_chunks list acts as a queue,</span></span><br><span class="line"><span class="comment">    with chunks being placed on it in free (and malloc_consolidate),</span></span><br><span class="line"><span class="comment">    and taken off (to be either used or placed in bins) in malloc.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    The NON_MAIN_ARENA flag is never set for unsorted chunks, so it</span></span><br><span class="line"><span class="comment">    does not have to be taken into account in size comparisons.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+<p>从下面的宏我们可以看出</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* The otherwise unindexable 1-bin is used to hold unsorted chunks. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> unsorted_chunks(M) (bin_at(M, 1))</span></span><br></pre></td></tr></table></figure>
+<p>unsorted bin 处于我们之前所说的bin数组下标1处。故而unsortedbin只有一个链表。<br>unsorted bin中空闲的chunk处于乱序状态，主要有两个来源<br>①当一个较大的chunk被分割成两半后，如果剩下的部分大于MINSIZE，就会被放到unsorted<br>bin中。<br>②释放一个不属于fast bin的chunk，并且该chunk不和top chunk紧邻时，该chunk会被放到<br>unsorted bin中。关于top chunk的解释，请参考下面的介绍。</p>
+<p>此外，Unsorted bin在使用的过程中，采用的遍历顺序是FIFO。</p>
+<h3 id="common-macro"><a href="#common-macro" class="headerlink" title="common macro"></a>common macro</h3><p>这里介绍一些通用的宏。<br>根据chunk的大小统一地获得chunk所在的索引</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define bin_index(sz)                                                          \</span></span><br><span class="line">    ((in_smallbin_range(sz)) ? smallbin_index(sz) : largebin_index(sz))</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/14/bin/" data-id="ckpxtnaaq0000xcu64x5b44so" data-title="Fastbin" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">堆概述</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/14/bin/">Fastbin</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/">堆概述</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/">攻防世界堆溢出UAF_time_formatter</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/11/Unlink/">Unlink</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/11/off-by-one/">Off-by-One</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 Saku376<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

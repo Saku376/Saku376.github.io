@@ -78,6 +78,65 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-堆溢出利用之fastbin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" class="article-date">
+  <time class="dt-published" datetime="2021-06-16T21:54:30.000Z" itemprop="datePublished">2021-06-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/">堆溢出利用之Fastbin</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="前半部分-：基于libc2-23（无tcache）"><a href="#前半部分-：基于libc2-23（无tcache）" class="headerlink" title="前半部分 ：基于libc2.23（无tcache）"></a>前半部分 ：基于libc2.23（无tcache）</h1><h3 id="堆机制-fastbin等"><a href="#堆机制-fastbin等" class="headerlink" title="堆机制(fastbin等)"></a>堆机制(fastbin等)</h3><p>想要了解堆机制利用方法必须要先了解堆的基本机制以及结构</p>
+<p>目前主要使用的内存管理库是ptmalloc，而在ptmalloc中，用户请求的空间由名为chunk的数据结构表示</p>
+<p>下面就是一个标准的chunk结构<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/1.jpg" alt="1.jpg"><br>该chunk中，prev_size参数为前一chunk的大小，size参数为该chunk的大小，而p参数（pre_insue）为标志位，标志前一个chunk的使用情况。而上述的三个参数组成了chunk的header部分，该部分一般不用被用户直接访问</p>
+<p>用户能够访问的空间为mem部分，如果一个chunk正被使用，则data部分为用户存储的内存空间，此时fd、bk指针并无实际意义。如果一个chunk未被使用，则mem部分的fd与bk存储的分别是上一个和下一个未被使用的chunk的地址。而这样一个由未被使用的chunk组成的链表被称为bin。</p>
+<p>一般而言，不同大小的free chunk会被分类到不同的bin中，而bin的类型可以被分为fast bin，small bin，large Bin和unsorted bin。其中，fast bin的操作效率较高，为单向链表，其它的都是双向链表。较高的操作效率意味着较低的安全性，所以fastbin机制产生的漏洞也是堆区漏洞的最重要组成部分之一。</p>
+<p>诸多的bin链由指针进行管理与保存，数组里头装的就是不同大小的Bin链的头尾结点指针。</p>
+<p>fastbinY数组：大小为10，为fastbin的专用数组<br>bins数组：大小为129，其中unsorted bin占1，small bin占2<del>63，large bin占64</del>126</p>
+<p>bin数组的结构大致如图<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/1.png" alt="1.png"><br>而我们的fastbinY数组为了追求效率，直接舍弃了对bk指针的管理，是fastbin形成了一个单链表结构（而非一般的双链表），在进行添加删除操作时使用的 是LIFO原则，结构大致如图。<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/2.png" alt="2.png"><br>而fastbin的高效体现在什么地方呢？</p>
+<p>默认情况下，对于size_t为4B的平台，小于64B的chunk分配请求；对于size_t为8B的平台，小于64B的chunk分配请求；对于size_t为8B的平台，小于128B的chunk分配请求，程序会根据所需的size首先到fastbin中去寻找对应大小的bin中是否包含未被使用的chunk，如果有，则直接从bin中返回chunk。而释放chunk时，也根据chunk的size参数计算fastbin中对应的index，如果存在对应的大小，就将chunk直接插入对应的bin中。</p>
+<p>32位平台size_t长度为4字节，64位平台的size_t长度可能是4字节，也可能是8字节，64位linux平台size_t长度为8字节</p>
+<p>而且为了追求效率,fastbin不仅使用单链表进行维护，由fastbin管理的chunk即使在被释放后chunk的p参数也不会被重置，而且在释放时只会对链表指针头部的chunk进行校验。</p>
+<p>以下图为例，在释放掉chunk1之后，结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/3.png" alt="3.png"><br>此时如果用户想再释放一次chunk1，程序会对单链表的头部chunk进行验证，发现用户对同一个chunk连续进行了两次释放操作，此时程序会报错并停止运行。</p>
+<p>但是如果我们在释放chunk1之后释放一个chunk2，此时fastbin结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/4.png" alt="4.png"><br>此时头结点就变成了chunk2，此时头结点就变成了chunk2，此时我们就可以对chunk1再一次进行释放操作，这就是fastbin攻击四类型的一种——double free攻击</p>
+<h3 id="fastbin的攻击方式"><a href="#fastbin的攻击方式" class="headerlink" title="fastbin的攻击方式"></a>fastbin的攻击方式</h3><h5 id="1、double-free"><a href="#1、double-free" class="headerlink" title="1、double free"></a>1、double free</h5><p>当我们申请了两块chunk，分别命名为chunk1和chunk2，然后一次释放chunk1和chunk2，此时fastbin结构如图<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/5.png" alt="5.png"><br>此时我们利用fastbin的特性，再次释放chunk1，此时会将fastbinY数组的fd指针指向chunk1，把chunk1的fd指针指向chunk2，导致最先进入fastbin的chunk1本应指向0x00的fd指针指向chunk2，此时chunk块结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/6.png" alt="6.png"><br>此时我们如果再次申请一块大小与chunk1大小相同的堆块，我们就能从fastbin中取出chunk1，并对chunk1的fd指针进行修改。注意此时当chunk1的fd被修改后，整个单链表的表尾就指向了修改后的fd，此时先连续malloc两次，把chunk2与chunk1一次取出，在下一次malloc的时候，我们就可以在我们指定的地址申请堆块，间接实现了任意地址写操作。（前提：需要操作目标地址使得size通过fastbin的校验）</p>
+<h5 id="2、house-of-spirit"><a href="#2、house-of-spirit" class="headerlink" title="2、house of spirit"></a>2、house of spirit</h5><p>其实感觉house of spirit和double free方法大差不差，只不过更仔细地说明了fake chunk的格式要求，并且修改的不适指定地址的内容，而是指定位置的前后内容。</p>
+<p>要想构造fastbin fake chunk，并且将其释放时，可以将其放入到对应的fastbin链表中，需要绕过一些必要的检测，即</p>
+<p>①fake chunk的ISMMAP位不能为1，因为free时，如果是mmap的chunk，会单独处理<br>②fake chunk地址需要对齐，malloc_align_mask<br>③fake chunk的size大小需要满足对应的fastbin的需求，同时也得对齐。<br>④fake chunk的next chunk大小不能小于2*SIZE_SZ，同时也不能大于av-&gt;system_mem。<br>⑤fake chunk对应的fastbin链表头部不能是该fake chunk，即不能构成double free的情况。</p>
+<p>可以看出，想要使用该技术分配到指定的地址，其实并不需要修改指定指定地址的任何内容，关键是要能够修改指定地址前后的内容使其绕过对应的检测。</p>
+<h5 id="3、alloc-to-stack"><a href="#3、alloc-to-stack" class="headerlink" title="3、alloc to stack"></a>3、alloc to stack</h5><p>原理与前二者基本相同，还是戒尺fastbin链表中的chunk的fd指针（除了double free，还可以用堆溢出等技巧），从而把chunk分配到栈上，从而控制栈上的关键数据（如校验值或者关键的返回地址），当然同时需要栈上存在有满足条件的size值。</p>
+<h5 id="4、arbitrary-alloc"><a href="#4、arbitrary-alloc" class="headerlink" title="4、arbitrary alloc"></a>4、arbitrary alloc</h5><p>arbitrary alloc其实alloc to stack是完全相同的，唯一的区别是分配的目标不再是栈中。事实上只要满足目标地址存在合法的size域（这个size域是构造的，还是自然存在的都无妨），我们可以把chunk分配到任意的可写内存中，比如bss、heap、data、stack等等。</p>
+<p>写到这里，这个fastbin机制的漏洞利用方式已经基本上讲完了（当然是基于libc2.23的）。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" data-id="ckq116ki700003ou62mn29pum" data-title="堆溢出利用之Fastbin" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-bin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/14/bin/" class="article-date">
@@ -601,57 +660,6 @@
 
 
   
-    <article id="post-通过GDB调试理解GOT表和PLT表" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" class="article-date">
-  <time class="dt-published" datetime="2021-04-30T11:20:08.000Z" itemprop="datePublished">2021-04-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/">通过GDB调试理解GOT表和PLT表</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>（清楚下述动态解析的过程，有助于理解GOT覆写利用）</p>
-<p>关于Linux中ELF文件格式可以参考文档《ELF_Format》<br>文档链接：<a target="_blank" rel="noopener" href="http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf">http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf</a><br>GOT（Global Offset Table）: 全局偏移表用于记录在ELF文件中所用到的共享库的绝对地址。在程序刚开始运行时，GOT表项是空的，当符号第一次被调用时会动态解析符号的绝对地址然后转去执行，并将被解析符号的绝对地址记录在GOT表中，第二次调用同一符号时，由于GOT表中已经记录了其绝对地址，直接转去执行即可（不用重新解析）。</p>
-<p>PLT（Procedure Linkage Table）: 过程链接表的作用是将位置无关的符号转移到绝对地址。当一个外部符号被调用时，PLT去引用GOT中的其符号对应的绝对地址，然后转入并执行。</p>
-<p>GOT位于.got.plt的section中，而PLT位于.plt的section中。下面给出一示例程序：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line">int main(int argc,char* argv[])&#123;</span><br><span class="line">	<span class="keyword">if</span>(argc&lt;2)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;argv[1] required!\n&quot;</span>);</span><br><span class="line">		<span class="built_in">exit</span>(0);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;You input:&quot;</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;argv[1]);</span></span><br><span class="line"><span class="string">	printf(&quot;</span>Down\n<span class="string">&quot;)</span></span><br><span class="line"><span class="string">	return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>编译该程序</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -o format format.c</span><br></pre></td></tr></table></figure>
-<p>然后我们通过readelf命令来查看format程序的section信息，并检查GOT:<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/1.png" alt="1.png"><br>从上图可看到，该ELF文件共包含29个section,有关GOT的重定向：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/2.png" alt="2.png"><br>.rel.dyn记录了加载时需要重定位的变量，.rel.plt记录的是需要重定位的函数。</p>
-<p>接下来，我们使用GDB来对程序进行调试，观察程序在调用printf()函数时，GOT的变化情况。</p>
-<p>因为程序逻辑需要输入参数，设置好参数后，在主函数处下断点，然后运行，单步调试来到printf()函数调用的地方:<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/3.png" alt="3.png"><br>这里可以看到在0x080484ab处指令为：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">call 0x8048330 &lt;<span class="built_in">printf</span>@plt&gt;</span><br></pre></td></tr></table></figure>
-<p>然后查看一下0x8048330处的代码：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/4.png" alt="4.png"><br>可以看到流程会跳转到ds[0x804a00c]处，而0x804a00c是printf()重定位偏移（查看上面GOT信息图），接着看一下后面的流程都做了什么：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/5.png" alt="5.png"><br>根据上面的流程分析，进行单步调试，当动态解析（_dl_runtime_resolve）完成后，流程会直接跳转到printf()函数主体：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/6.png" alt="6.png"><br>上面我们说过，当第一次调用动态符号时会动态解析其绝对地址并写到GOT中，下次调用的时候就不用再次解析了，我们来看看这个时候原先0x804a00c处的指向情况：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/7.png" alt="7.png"><br>其所指向的地址正好为第一次解析后得到的printf()函数的入口地址。<br>程序中，printf()函数调用过程可以总结为：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/8.png" alt="8.png"><br>总结来说就是，GOT保存了程序中所要调用的函数的地址，运行一开时其表项为空，会在运行时实时的更新表项。一个符号调用在第一次时会解析出绝对地址更新到GOT中，第二次调用时就直接找到了GOT表项所存储的函数地址直接调用了。</p>
-<p>（清楚上述动态解析过程，有助于理解GOT的覆写利用）</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" data-id="cko49cgdc0000fgu65jcb33uy" data-title="通过GDB调试理解GOT表和PLT表" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -702,6 +710,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/">堆溢出利用之Fastbin</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/14/bin/">Bin</a>
           </li>
         
@@ -715,10 +727,6 @@
         
           <li>
             <a href="/2021/06/11/Unlink/">Unlink</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/11/off-by-one/">Off-by-One</a>
           </li>
         
       </ul>

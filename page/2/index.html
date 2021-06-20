@@ -78,6 +78,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-UAF漏洞" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" class="article-date">
+  <time class="dt-published" datetime="2021-05-03T15:20:16.000Z" itemprop="datePublished">2021-05-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/">UAF漏洞初探</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="UAF原理"><a href="#UAF原理" class="headerlink" title="UAF原理"></a>UAF原理</h2><p>上代码！！！</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line">int <span class="function"><span class="title">main</span></span>()&#123;</span><br><span class="line">	char *p1;</span><br><span class="line">	p1=(char *)malloc(sizeof(char)*10);</span><br><span class="line">	memcpy(p1,<span class="string">&quot;hello&quot;</span>,10);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;p1 addr:%x,%s\n&quot;</span>,p1,p1);</span><br><span class="line">	free(p1);</span><br><span class="line">	char *p2;</span><br><span class="line">	p2=(char *)malloc(sizeof(char)*10);</span><br><span class="line">	memcpy(p2,<span class="string">&quot;world&quot;</span>,10);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;p2 addr:%x,%s\n&quot;</span>,p2,p1);</span><br><span class="line">	<span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上代码所示，<br>指针p1申请内存，打印其地址和字符串，然后释放p1<br>然后指针p2申请同样大小的内存，打印p2的地址和值<br>GCC编译，运行结果如下：<br><img src="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/1.png" alt="1.png"><br>p1与p2地址相同，p1指针释放后，p2申请相同大小的内存，操作系统会将之前给p1分配的地址分配给p2，修改p2的值，p1也被修改了。</p>
+<p>结论：<br>1.在free掉一块内存后，紧接着申请大小相同的内存，操作系统会将刚刚free掉的内存再次分配。<br>2.通过p2能够操作p1，如果之后p1继续被使用（use after free），则可以通过p2修改程序功能等目的。</p>
+<p>根本原因：说来话长，可以尝试理解dlmalloc</p>
+<h2 id="dlmalloc详解"><a href="#dlmalloc详解" class="headerlink" title="dlmalloc详解"></a>dlmalloc详解</h2><p>c语言程序会向栈和堆申请内存，小块内存向栈申请，函数调用结束后程序会自动释放内存。大块内存向堆申请，需要自己释放，否则会造成内存泄露。</p>
+<p>堆的申请涉及到动态内存管理，包括内核层面和用户层面。linux内核向应用程序提供了接口（系统调用brk和mmap），当应用程序需要申请内存时向内核提出请求。</p>
+<p>内存分配器避免了应用程序直接调用brk和mmap，应用程序在申请内存时，直接向内存分配器提交申请。有了内存分配器，我们可以避免brk和mmap的系统调用而直接通过malloc和free两个接口函数管理内存。申请内存时，内存分配器会一次向内核申请大量内存，然后分批交给应用程序，从而提高了效率。释放内存时，应用程序也是将内存释放给内存分配器，内存分配器在合适的时候再将内存释放回内核。</p>
+<p>dlmalloc就是一种内存分配器，用于Android系统。而linux中采用的是ptmalloc内存分配器，它在dlmalloc的基础上进行了改进，以更好适应多线程。dlmalloc采用两种方式申请内存，如果应用程序单次申请的内存量小于256kb，dlmalloc调用brk()扩展进程堆空间，但是dlmalloc向内存申请的内存量大于应用程序申请的内存量，申请到内存后dlmalloc将内存分成两块，一块返回给应用程序，另一块作为空闲内存先保留起来。下次应用程序申请内存时dlmalloc就不需要向内核申请内存了，从而加快分配效率。当应用程序调用free释放内存时，如果内存块小于256kb，dlmalloc并不马上将内存块释放回内存，而是将内存标记为空闲状态。这么做的原因有两个：一是内存块不一定能马上释放回内核，二是供应用程序下次申请内存使用。当dlmalloc中空闲内存量达到一定值时dlmalloc才将空闲内存释放回内核。如果应用程序申请的内存大于256kb,dlmalloc调用mmap()向内存内核申请一块内存，返回返还给应用程序使用。如果应用程序释放的内存大于256kb，dlmalloc马上调用munmap()释放内存。dlmalloc不会缓存大于256kb的内存块，因为这样的内存块太大了，最好不要长期占用这么大的内存资源。</p>
+<p>brk()系统调用可以扩充或收缩堆的大小，mmap()向内核申请内存，munmap则释放内存。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" data-id="cko8s57zf0000c0u6gby29mx5" data-title="UAF漏洞初探" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-人活着就是为了——北京邮电大学" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" class="article-date">
@@ -489,53 +537,11 @@
 
 
   
-    <article id="post-Telling-a-crowd-of-pwner" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/14/Telling-a-crowd-of-pwner/" class="article-date">
-  <time class="dt-published" datetime="2021-04-15T04:45:12.000Z" itemprop="datePublished">2021-04-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/14/Telling-a-crowd-of-pwner/">Telling a crowd of pwner（告广大pwn友）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近一直观察跟我一起学pwn的朋友，过程十分痛苦。但是只能说，学pwn是一个漫长而又艰辛的过程，要<br>想练好武功，就要扎稳马步，切记急功近利，急于求成。因为，pwner需要的能力涉及广泛。虽然很多人<br>（包括我）在学习栈溢出、格式化字符串、整数溢出、堆溢出等各种招式时特别艰难，但是学习这些招式仅<br>仅是进入pwn海的第一步。在实际漏洞挖掘过程中，程序逻辑纷繁复杂，更需要pwn者将所学所有招式融汇<br>贯通，并且要有十分熟练的逆向功底（这里包括分析C语言和汇编语言程序逻辑的能力、调试能力、对底层<br>细节的掌控能力）。所以，我们入门者在学习pwn的过程中往往过于关注招式的变化，但是C语言、汇编、逆<br>向等能力基础不扎实（即马步不稳），但是这里面每一个能力的炼成都是极为艰难的，马步扎稳了还不够，更<br>要把毕生所学融汇贯通，在各种变换莫测的程序逻辑中利用这些漏洞就更需要高深的漏洞利用能力。所以，在<br>碰到学过招式，知道漏洞，利用不了的情况实属正常。如果把学pwn比作练武，C语言、汇编、逆向、python<br>就是根基，要扎好马步方可与人决斗。而各种漏洞则是招式，从栈溢出到堆溢出全部学完都不能保证你能驰<br>骋沙场。最好的方式就是边学招式边实战。实战是什么？你必须经常性地体验实际程序逻辑，把招式转化为<br>漏洞利用的能力，将战斗持续进行到底，这样才能在pwn海中提升自己的实战能力（即漏洞利用能力）。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><h2 id="pwn海中的能力点"><a href="#pwn海中的能力点" class="headerlink" title="pwn海中的能力点"></a>pwn海中的能力点</h2><h3 id="1-扎马步：C语言、汇编、逆向调试、python"><a href="#1-扎马步：C语言、汇编、逆向调试、python" class="headerlink" title="1.扎马步：C语言、汇编、逆向调试、python"></a>1.扎马步：C语言、汇编、逆向调试、python</h3><h3 id="2-练招式：研究各种漏洞的利用技巧"><a href="#2-练招式：研究各种漏洞的利用技巧" class="headerlink" title="2.练招式：研究各种漏洞的利用技巧"></a>2.练招式：研究各种漏洞的利用技巧</h3><h3 id="3-实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。"><a href="#3-实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。" class="headerlink" title="3.实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。"></a>3.实战：习惯性的阅读源码，分析程序逻辑，挖掘漏洞，利用漏洞。实战层面最为重要。</h3><p>Add:<br>所有的pwner都是不可埋没的人才，极具价值。但赛场只是擂台，磨炼功底。只要我们把时间跨度放得更宽，<br>更远，我们看到的应该不仅是赛场上那诱人的奖项，我们更应该看到属于我们诗和远方，那里自有容纳每一位<br>pwner的舞台，每一个pwner都将闪闪发光。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/14/Telling-a-crowd-of-pwner/" data-id="cknk857u600008ku6hd9q0mrf" data-title="Telling a crowd of pwner（告广大pwn友）" class="article-share-link">分享</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/">&laquo; 上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/">&laquo; 上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">下一页 &raquo;</a>
   </nav>
 
 </section>
@@ -581,6 +587,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/19/pwn%E5%AD%A6%E4%B9%A0%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%E5%8F%82%E8%80%83/">Pwn学习思维导图参考</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/19/fastbin-attack/">Fastbin Attack</a>
           </li>
         
@@ -594,10 +604,6 @@
         
           <li>
             <a href="/2021/06/14/bin/">Bin</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/">堆概述</a>
           </li>
         
       </ul>

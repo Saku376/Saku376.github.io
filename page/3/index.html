@@ -78,6 +78,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-通过GDB调试理解GOT表和PLT表" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" class="article-date">
+  <time class="dt-published" datetime="2021-04-30T11:20:08.000Z" itemprop="datePublished">2021-04-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/">通过GDB调试理解GOT表和PLT表</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>（清楚下述动态解析的过程，有助于理解GOT覆写利用）</p>
+<p>关于Linux中ELF文件格式可以参考文档《ELF_Format》<br>文档链接：<a target="_blank" rel="noopener" href="http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf">http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf</a><br>GOT（Global Offset Table）: 全局偏移表用于记录在ELF文件中所用到的共享库的绝对地址。在程序刚开始运行时，GOT表项是空的，当符号第一次被调用时会动态解析符号的绝对地址然后转去执行，并将被解析符号的绝对地址记录在GOT表中，第二次调用同一符号时，由于GOT表中已经记录了其绝对地址，直接转去执行即可（不用重新解析）。</p>
+<p>PLT（Procedure Linkage Table）: 过程链接表的作用是将位置无关的符号转移到绝对地址。当一个外部符号被调用时，PLT去引用GOT中的其符号对应的绝对地址，然后转入并执行。</p>
+<p>GOT位于.got.plt的section中，而PLT位于.plt的section中。下面给出一示例程序：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line">int main(int argc,char* argv[])&#123;</span><br><span class="line">	<span class="keyword">if</span>(argc&lt;2)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;argv[1] required!\n&quot;</span>);</span><br><span class="line">		<span class="built_in">exit</span>(0);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;You input:&quot;</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;argv[1]);</span></span><br><span class="line"><span class="string">	printf(&quot;</span>Down\n<span class="string">&quot;)</span></span><br><span class="line"><span class="string">	return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>编译该程序</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -o format format.c</span><br></pre></td></tr></table></figure>
+<p>然后我们通过readelf命令来查看format程序的section信息，并检查GOT:<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/1.png" alt="1.png"><br>从上图可看到，该ELF文件共包含29个section,有关GOT的重定向：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/2.png" alt="2.png"><br>.rel.dyn记录了加载时需要重定位的变量，.rel.plt记录的是需要重定位的函数。</p>
+<p>接下来，我们使用GDB来对程序进行调试，观察程序在调用printf()函数时，GOT的变化情况。</p>
+<p>因为程序逻辑需要输入参数，设置好参数后，在主函数处下断点，然后运行，单步调试来到printf()函数调用的地方:<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/3.png" alt="3.png"><br>这里可以看到在0x080484ab处指令为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">call 0x8048330 &lt;<span class="built_in">printf</span>@plt&gt;</span><br></pre></td></tr></table></figure>
+<p>然后查看一下0x8048330处的代码：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/4.png" alt="4.png"><br>可以看到流程会跳转到ds[0x804a00c]处，而0x804a00c是printf()重定位偏移（查看上面GOT信息图），接着看一下后面的流程都做了什么：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/5.png" alt="5.png"><br>根据上面的流程分析，进行单步调试，当动态解析（_dl_runtime_resolve）完成后，流程会直接跳转到printf()函数主体：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/6.png" alt="6.png"><br>上面我们说过，当第一次调用动态符号时会动态解析其绝对地址并写到GOT中，下次调用的时候就不用再次解析了，我们来看看这个时候原先0x804a00c处的指向情况：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/7.png" alt="7.png"><br>其所指向的地址正好为第一次解析后得到的printf()函数的入口地址。<br>程序中，printf()函数调用过程可以总结为：<br><img src="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/8.png" alt="8.png"><br>总结来说就是，GOT保存了程序中所要调用的函数的地址，运行一开时其表项为空，会在运行时实时的更新表项。一个符号调用在第一次时会解析出绝对地址更新到GOT中，第二次调用时就直接找到了GOT表项所存储的函数地址直接调用了。</p>
+<p>（清楚上述动态解析过程，有助于理解GOT的覆写利用）</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" data-id="cko49cgdc0000fgu65jcb33uy" data-title="通过GDB调试理解GOT表和PLT表" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-GOT表和PLT表" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/04/30/GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" class="article-date">
@@ -438,6 +489,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/25/Windows%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Windows缓冲区溢出</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/24/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/">缓冲区溢出原理</a>
           </li>
         
@@ -451,10 +506,6 @@
         
           <li>
             <a href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">分箱式内存管理</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/20/PWN-shellcode%E7%BC%96%E5%86%99/">PWN-Shellcode编写</a>
           </li>
         
       </ul>

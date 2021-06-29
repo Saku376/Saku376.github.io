@@ -78,6 +78,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-linux动态内存管理机制" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" class="article-date">
+  <time class="dt-published" datetime="2021-06-19T12:53:35.000Z" itemprop="datePublished">2021-06-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/">Linux动态内存管理机制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="进程与内存"><a href="#进程与内存" class="headerlink" title="进程与内存"></a>进程与内存</h1><h3 id="1、进程如何使用内存"><a href="#1、进程如何使用内存" class="headerlink" title="1、进程如何使用内存"></a>1、进程如何使用内存</h3><p>毫无疑问，所有进程（执行的程序）都必须占有一定数量的内存，它或是用来存放从磁盘载入的程序代码，或是存取自用户输入的数据等等。不过进程对这些内存的管理方式因为内存用途不一而不尽相同，有些内存是事先静态分配和统一回收的，而有些却是需要动态分配和回收的。</p>
+<p>对于任何一个普通进程来讲，它都会涉及到5种不同的数据段。稍有些编程知识的朋友都能想到这几个数据段中包含有“程序代码段”、“程序数据段”、“程序堆栈段等”。不错，这几个数据段都在其中，但除了以上几种数据段之外，进程还另外包含两种数据段。</p>
+<p>代码段：代码段是用来存放可执行文件的操作指令，也就是说它是可执行程序在内存中的镜像。代码段需要防止在运行时被非法修改，所以只允许读取操作，而不允许写入操作–它是不可写的。</p>
+<p>数据段：数据段用来存放可执行文件中已初始化全局变量，换句话说就是存放程序静态分配的变量和全局变量。</p>
+<p>BSS段：BSS段包含了程序汇总未初始化的全局变量，在内存中bss全部置零。</p>
+<p>堆段：堆时用于存放进程运行中被动态分配的内存段，它的大小并不固定，可动态扩张或缩减。当进程用malloc等函数分配内存时，新分配的内存就被添加到堆上（堆被扩张）；当利用free等函数释放内存，被释放的内存从堆中被剔除（堆被缩减）</p>
+<p>栈：栈是用户存放程序临时创建的局部变量，也就是说我们函数括弧中定义的变量（但不包括static声明的变量,static意味着在数据段中存放变量）。除此之外，在函数被调用时，其参数也会被压入发起调用的进程栈中，并且待到调用结束后，函数的返回值也会被存放回栈中。由于栈中后进先出特点，所以栈特别方便用来保存/恢复调用现场。从这个意义上讲，我们可以把堆栈看成一个寄存、交换临时数据的内存区。</p>
+<h3 id="2、进程如何组织这些区域？"><a href="#2、进程如何组织这些区域？" class="headerlink" title="2、进程如何组织这些区域？"></a>2、进程如何组织这些区域？</h3><p>上述几种内存区域中数据段、BSS和堆通常是被连续存储的–内存位置上是连续的，而代码段和栈往往被独立存放。有趣的是，堆和栈两个区域关系很暧昧，他们一个向下长，一个向上长，但你不必担心他们会碰头，因为他们之间间隔很大。</p>
+<p>进入操作系统内核看看，进程对内存具体是如何进行分配和管理的。<br>从用户向内核看，所使用的内存表象形式会依次经历“逻辑地址”–“线性地址”–“物理地址”几种形式。逻辑地址经段机制转化成线性地址；线性地址经过页机制转化为物理地址。（但是我们要知道Linux虽然保留了段机制，但是将所有程序的段地址都定死为0-4G，所以虽然逻辑地址和线性地址是两种不同的地址空间，但在linux中逻辑地址就等于线性地址）沿着这条线索，我们所研究的主要问题也就集中在下面几个问题。<br>1、进程地址空间如何管理？<br>2、进程地址如何映射到物理内存？<br>3、物理内存如何被管理？</p>
+<h1 id="进程内存空间"><a href="#进程内存空间" class="headerlink" title="进程内存空间"></a>进程内存空间</h1><p>linux操作系统曹勇虚拟内存管理技术，使得每个进程都有各自互不干涉的进程地址空间。该空间是块大小为4G的线性虚拟空间，用户所看到和接触到的都是该虚拟地址，无法看到实际的物理内存地址。利用这种虚拟地址不但能起到保护操作系统的效果（用户不能直接访问物理内存），而且更重要的是，用户程序可使用比实际物理内存更大的地址空间。</p>
+<p>在讨论进程空间细节前，这里先要澄清下面介个问题：</p>
+<p>一、4G的进程地址空间被认为的分为两个部分–用户空间与内核空间。用户空间从0到3G（0xC0000000）,内核空间占据3G到4G。用户进程通常情况下只能访问用户空间的虚拟地址，不能访问内核空间虚拟地址。只有用户进程进行系统调用（代表用户进程在内核态执行）等时刻才可以访问到内核空间。</p>
+<p>二、用户空间对应进程，每当进程切换，用户空间就会跟着变化；而内核空间是由内核负责映射，它并不会跟着进程改变，是固定的。内核空间地址有着自己对应的页表（init_mm.pgd），用户进程各有不同的页表。</p>
+<p>三、每个进程的用户空间都是完全独立、互不相干的。不信的话，你可以把上面的程序同时运行10次，你会看到10个进程占用的线性地址一模一样。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" data-id="ckq4qur1o0000f0u63bb95tev" data-title="Linux动态内存管理机制" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-堆溢出利用之fastbin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" class="article-date">
@@ -613,53 +665,6 @@
 
 
   
-    <article id="post-堆溢出必备基础——Glibc内存管理（1）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
-  <time class="dt-published" datetime="2021-05-02T05:20:27.000Z" itemprop="datePublished">2021-05-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="一、什么是glibc？glibc与libc的区别？"><a href="#一、什么是glibc？glibc与libc的区别？" class="headerlink" title="一、什么是glibc？glibc与libc的区别？"></a>一、什么是glibc？glibc与libc的区别？</h2><p>glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。</p>
-<p>glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。</p>
-<p>延伸问题——ANSI C和GUN C是什么玩意？<br>ANSI C：美国国家标准协会（ANSI）对C语言发布的标准<br>GUN C：简单理解为GUN组织对C语言发布的标准</p>
-<h2 id="二、linux进程内存布局"><a href="#二、linux进程内存布局" class="headerlink" title="二、linux进程内存布局"></a>二、linux进程内存布局</h2><h3 id="32位模式下进程内存经典布局"><a href="#32位模式下进程内存经典布局" class="headerlink" title="32位模式下进程内存经典布局"></a>32位模式下进程内存经典布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png" alt="1.png"></p>
-<p>这种布局是linux内核2.6.7以前的默认进程内存布局形式，mmap区域和栈区域相对增长，这意味着堆中只有1GB的内存地址空间可以使用，继续增长就会进入mmap映射区域，这是该内核版本的缺陷。这是由于32位模式地址空间限制造成的，所以内核引入了另一种虚拟地址空间的布局形式。但是对于64位系统而言，它提供了巨大的虚拟地址空间，这种布局就相当好。</p>
-<h3 id="32位模式下进程默认内存布局"><a href="#32位模式下进程默认内存布局" class="headerlink" title="32位模式下进程默认内存布局"></a>32位模式下进程默认内存布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png" alt="2.png"></p>
-<p>从上图可以看到，栈至顶向下扩展，并且栈是有界的。堆至底向上扩展，mmap映射区域至顶向下扩展，直至耗尽虚拟地址空间中的剩余区域，这种结构便于C运行时库使用mmap映射区域和堆进行内存分配。上图的布局形式是在内核2.6.7以后才引入的，这是32位模式下进程的默认内存布局形式。</p>
-<h3 id="64位模式下进程内存布局"><a href="#64位模式下进程内存布局" class="headerlink" title="64位模式下进程内存布局"></a>64位模式下进程内存布局</h3><p>在64位模式下各个区域的起始位置是什么呢？对于AMD64系统，内存布局采用经典内存布局，text的起始地址为，text的起始地址为0x0000000000400000，堆紧接着BSS段向上增长，mmap映射区域开始位置一般设为TASK_SIZE/3。<br>下面的图我其实看不懂（不知道怎么算地址）直接贴出来：<br><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png" alt="3.png"></p>
-<p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png" alt="4.png"><br>上图是X86_64下的linux进程的默认内存布局形式，这只是一个示意图，当前内核默认配置下，进程的栈和mmap映射区域并不是从一个固定地址开始，并且每次启动时的值都不一样，这是程序启动时随机改变这些值的设置，使得使用缓冲区溢出进行攻击更加困难。在CTF中，这种保护叫做ASLR。当然也可以让进程中的栈和mmap映射区域从一个固定位置开始，只需要设置全局变量randomize_va_space的值为0，这个变量默认值为1。用户可以通过设置/proc/sys/kernel/randomize_va_space来停用该特性，也可以用如下命令：<br>sudo sysctl -w kernel.randomize_va_space=0</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -710,6 +715,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/25/Windows%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Windows缓冲区溢出</a>
           </li>
         
@@ -723,10 +732,6 @@
         
           <li>
             <a href="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/">二进制软件逆向分析基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">分箱式内存管理</a>
           </li>
         
       </ul>

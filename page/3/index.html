@@ -78,6 +78,53 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-堆溢出必备基础——Glibc内存管理（1）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
+  <time class="dt-published" datetime="2021-05-02T05:20:27.000Z" itemprop="datePublished">2021-05-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="一、什么是glibc？glibc与libc的区别？"><a href="#一、什么是glibc？glibc与libc的区别？" class="headerlink" title="一、什么是glibc？glibc与libc的区别？"></a>一、什么是glibc？glibc与libc的区别？</h2><p>glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。</p>
+<p>glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。</p>
+<p>延伸问题——ANSI C和GUN C是什么玩意？<br>ANSI C：美国国家标准协会（ANSI）对C语言发布的标准<br>GUN C：简单理解为GUN组织对C语言发布的标准</p>
+<h2 id="二、linux进程内存布局"><a href="#二、linux进程内存布局" class="headerlink" title="二、linux进程内存布局"></a>二、linux进程内存布局</h2><h3 id="32位模式下进程内存经典布局"><a href="#32位模式下进程内存经典布局" class="headerlink" title="32位模式下进程内存经典布局"></a>32位模式下进程内存经典布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png" alt="1.png"></p>
+<p>这种布局是linux内核2.6.7以前的默认进程内存布局形式，mmap区域和栈区域相对增长，这意味着堆中只有1GB的内存地址空间可以使用，继续增长就会进入mmap映射区域，这是该内核版本的缺陷。这是由于32位模式地址空间限制造成的，所以内核引入了另一种虚拟地址空间的布局形式。但是对于64位系统而言，它提供了巨大的虚拟地址空间，这种布局就相当好。</p>
+<h3 id="32位模式下进程默认内存布局"><a href="#32位模式下进程默认内存布局" class="headerlink" title="32位模式下进程默认内存布局"></a>32位模式下进程默认内存布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png" alt="2.png"></p>
+<p>从上图可以看到，栈至顶向下扩展，并且栈是有界的。堆至底向上扩展，mmap映射区域至顶向下扩展，直至耗尽虚拟地址空间中的剩余区域，这种结构便于C运行时库使用mmap映射区域和堆进行内存分配。上图的布局形式是在内核2.6.7以后才引入的，这是32位模式下进程的默认内存布局形式。</p>
+<h3 id="64位模式下进程内存布局"><a href="#64位模式下进程内存布局" class="headerlink" title="64位模式下进程内存布局"></a>64位模式下进程内存布局</h3><p>在64位模式下各个区域的起始位置是什么呢？对于AMD64系统，内存布局采用经典内存布局，text的起始地址为，text的起始地址为0x0000000000400000，堆紧接着BSS段向上增长，mmap映射区域开始位置一般设为TASK_SIZE/3。<br>下面的图我其实看不懂（不知道怎么算地址）直接贴出来：<br><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png" alt="3.png"></p>
+<p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png" alt="4.png"><br>上图是X86_64下的linux进程的默认内存布局形式，这只是一个示意图，当前内核默认配置下，进程的栈和mmap映射区域并不是从一个固定地址开始，并且每次启动时的值都不一样，这是程序启动时随机改变这些值的设置，使得使用缓冲区溢出进行攻击更加困难。在CTF中，这种保护叫做ASLR。当然也可以让进程中的栈和mmap映射区域从一个固定位置开始，只需要设置全局变量randomize_va_space的值为0，这个变量默认值为1。用户可以通过设置/proc/sys/kernel/randomize_va_space来停用该特性，也可以用如下命令：<br>sudo sysctl -w kernel.randomize_va_space=0</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-通过GDB调试理解GOT表和PLT表" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" class="article-date">
@@ -489,6 +536,10 @@
       <ul>
         
           <li>
+            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/25/Windows%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Windows缓冲区溢出</a>
           </li>
         
@@ -502,10 +553,6 @@
         
           <li>
             <a href="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/">二进制软件逆向分析基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">分箱式内存管理</a>
           </li>
         
       </ul>

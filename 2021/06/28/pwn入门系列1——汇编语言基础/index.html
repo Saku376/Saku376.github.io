@@ -4,22 +4,22 @@
   <meta charset="utf-8">
   
   
-  <title>Pwn入门系列——汇编语言基础 | Saku376&#39;s Pwn Sea</title>
+  <title>Pwn入门系列1——汇编语言基础 | Saku376&#39;s Pwn Sea</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="一些量词bit          比特     1位byte       字节      8位word      字         16位dword    双字      32位qword    四字      64位 计算机寻址方式① 当前主流操作系统中，都是以字节为寻址单位进行寻址②意味着计算机访问的最小单位是一个字节 前言①计算机并不能直接运行高级语言②我们编写的高级语言程序需要进行编译后">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pwn入门系列——汇编语言基础">
-<meta property="og:url" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:title" content="Pwn入门系列1——汇编语言基础">
+<meta property="og:url" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
 <meta property="og:description" content="一些量词bit          比特     1位byte       字节      8位word      字         16位dword    双字      32位qword    四字      64位 计算机寻址方式① 当前主流操作系统中，都是以字节为寻址单位进行寻址②意味着计算机访问的最小单位是一个字节 前言①计算机并不能直接运行高级语言②我们编写的高级语言程序需要进行编译后">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
+<meta property="og:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
 <meta property="article:published_time" content="2021-06-28T15:55:46.000Z">
-<meta property="article:modified_time" content="2021-07-07T06:58:19.921Z">
+<meta property="article:modified_time" content="2021-07-07T08:26:53.163Z">
 <meta property="article:author" content="Saku376">
 <meta property="article:tag" content="网络安全、二进制、pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
+<meta name="twitter:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
   
     <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
   
@@ -80,9 +80,9 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-pwn入门系列——汇编语言基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-pwn入门系列1——汇编语言基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" class="article-date">
+    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" class="article-date">
   <time class="dt-published" datetime="2021-06-28T15:55:46.000Z" itemprop="datePublished">2021-06-28</time>
 </a>
     
@@ -94,7 +94,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Pwn入门系列——汇编语言基础
+      Pwn入门系列1——汇编语言基础
     </h1>
   
 
@@ -125,7 +125,7 @@
 <h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>①从高级语言层面看：<br>第一种方式申请了一个变量c，第二种直接在原本的变量上操作<br>②从汇编语言层面上看：<br>第一种指令数少，而第二种方式涉及到算术运算指令。<br>③从结果上看，可以直接：xchg rax rbx</p>
 <h3 id="在CTF中需要掌握到什么程度"><a href="#在CTF中需要掌握到什么程度" class="headerlink" title="在CTF中需要掌握到什么程度"></a>在CTF中需要掌握到什么程度</h3><p>①能看懂就行，绝大多数情况下不需要真正的编程（shellcode题目除外）<br>②IDA F5有时候不需要读汇编<br>③通常都是分析gadget,知道怎么用<br>④调试程序也不需要分析每一条汇编指令，单步执行然后查看寄存器状态即可。<br>⑤但是必须得会汇编，学PWN必须得会汇编</p>
 <h3 id="数"><a href="#数" class="headerlink" title="数"></a>数</h3><p>①数学是科学的基石，任何科技都离不开数学的支撑<br>②在计算机中，无论数据是以二进制或者十六进制十进制表示，本质上都是代表一个数<br>③尽管数据在计算机内部有很多存储形式（补码、原码、反码等）。但是本质上都是数。</p>
-<h3 id="数-1"><a href="#数-1" class="headerlink" title="数"></a>数</h3><p>计算机不能存储无限大的数，这个数的数值有一定的上限和下限。<br><img src="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png" alt="1.png"></p>
+<h3 id="数-1"><a href="#数-1" class="headerlink" title="数"></a>数</h3><p>计算机不能存储无限大的数，这个数的数值有一定的上限和下限。<br><img src="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png" alt="1.png"></p>
 <h3 id="数-2"><a href="#数-2" class="headerlink" title="数"></a>数</h3><p>①如果是Unsigned也就是无符号数，数据的每一位都是代表数据。<br>②如果是signed有符号数，那么数据的最高位会被当做符号位处理。<br>③0代表正数，1代表负数。</p>
 <h3 id="溢出"><a href="#溢出" class="headerlink" title="溢出"></a>溢出</h3><p>①数值有上下限范围，那么就不可避免的会有溢出情况<br>②以32位int为例，有以下四种溢出：<br>无符号上溢：0xffffffff+1变成0<br>无符号下溢：0-1变成0xffffffff<br>有符号上溢：有符号正数0x7fffffff+1变成负数0x80000000<br>有符号下溢：有符号数0x80000000-1变成正数0x7fffffff</p>
 <h3 id="溢出-1"><a href="#溢出-1" class="headerlink" title="溢出"></a>溢出</h3><p>这就是整数溢出，原因如下两点：<br>①存储位数不够<br>②溢出到符号位<br>整数溢出一般配合别的漏洞来使用。</p>
@@ -133,7 +133,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" data-id="ckqt4m1070000j0u6hzwbcxvj" data-title="Pwn入门系列——汇编语言基础" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" data-id="ckqt8m02e0000mcu68imtalg2" data-title="Pwn入门系列1——汇编语言基础" class="article-share-link">分享</a>
       
       
       
@@ -143,11 +143,11 @@
     
 <nav id="article-nav">
   
-    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          Pwn入门系列——计算机内部数据存储格式
+          Pwn入门系列2——计算机内部数据存储格式
         
       </div>
     </a>
@@ -194,7 +194,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
     </div>
   </div>
 
@@ -207,23 +207,23 @@
       <ul>
         
           <li>
+            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列3——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列2——计算机内部数据存储格式</a>
           </li>
         
       </ul>

@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>Pwn入门系列——计算机内部数据存储格式 | Saku376&#39;s Pwn Sea</title>
+  <title>Pwn入门系列2——计算机内部数据存储格式 | Saku376&#39;s Pwn Sea</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="linux基础①保护层级：分为四个ring0-ring3②一般来说就两个，0和3③0为内核④3为用户 linux基础①权限：用户分为多个组②文件和目录权限一般都是三个，即可读可写可执行③读：R，写：W，执行：X④赋予一个可执行文件执行权限就是chmod+x filename linux基础①虚拟内存和物理内存②物理内存很直白，就是内存中实际的地址③虚拟内存就是物理内存经过MMU转换后的地址④系统会">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pwn入门系列——计算机内部数据存储格式">
-<meta property="og:url" content="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/index.html">
+<meta property="og:title" content="Pwn入门系列2——计算机内部数据存储格式">
+<meta property="og:url" content="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/index.html">
 <meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
 <meta property="og:description" content="linux基础①保护层级：分为四个ring0-ring3②一般来说就两个，0和3③0为内核④3为用户 linux基础①权限：用户分为多个组②文件和目录权限一般都是三个，即可读可写可执行③读：R，写：W，执行：X④赋予一个可执行文件执行权限就是chmod+x filename linux基础①虚拟内存和物理内存②物理内存很直白，就是内存中实际的地址③虚拟内存就是物理内存经过MMU转换后的地址④系统会">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-06-29T14:56:40.000Z">
-<meta property="article:modified_time" content="2021-07-07T07:31:08.260Z">
+<meta property="article:modified_time" content="2021-07-07T08:27:03.992Z">
 <meta property="article:author" content="Saku376">
 <meta property="article:tag" content="网络安全、二进制、pwn">
 <meta name="twitter:card" content="summary">
@@ -78,9 +78,9 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-pwn入门系列——计算机内部数据存储格式" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-pwn入门系列2——计算机内部数据存储格式" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" class="article-date">
+    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" class="article-date">
   <time class="dt-published" datetime="2021-06-29T14:56:40.000Z" itemprop="datePublished">2021-06-29</time>
 </a>
     
@@ -92,7 +92,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Pwn入门系列——计算机内部数据存储格式
+      Pwn入门系列2——计算机内部数据存储格式
     </h1>
   
 
@@ -113,7 +113,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" data-id="ckqt4u67w0000lsu6bjuugakh" data-title="Pwn入门系列——计算机内部数据存储格式" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" data-id="ckqt8m02i0001mcu6dpdh0cgv" data-title="Pwn入门系列2——计算机内部数据存储格式" class="article-share-link">分享</a>
       
       
       
@@ -123,19 +123,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          Pwn入门系列——函数调用流程与调用约定
+          Pwn入门系列3——函数调用流程与调用约定
         
       </div>
     </a>
   
   
-    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">Pwn入门系列——汇编语言基础</div>
+      <div class="article-nav-title">Pwn入门系列1——汇编语言基础</div>
     </a>
   
 </nav>
@@ -174,7 +174,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
     </div>
   </div>
 
@@ -187,23 +187,23 @@
       <ul>
         
           <li>
+            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列3——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列2——计算机内部数据存储格式</a>
           </li>
         
       </ul>

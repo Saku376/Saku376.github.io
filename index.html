@@ -78,6 +78,92 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-pwn入门系列5——linux延迟绑定机制" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/" class="article-date">
+  <time class="dt-published" datetime="2021-07-01T16:24:51.000Z" itemprop="datePublished">2021-07-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a>动态链接库</h3><p>①我们程序开发过程中都会用到系统函数，比如read，write，open等。<br>②这些系统函数不需要我们实现，因为系统已经帮你完成这些工作，只需要调用即可，存放这些函数的库文件就是动态链接库。<br>③通常情况下，我们对于pwn题接触到的动态链接库就是libc.so文件。</p>
+<h3 id="静态编译与动态编译"><a href="#静态编译与动态编译" class="headerlink" title="静态编译与动态编译"></a>静态编译与动态编译</h3><p>①静态编译的思路就是将所有可能运行到的库函数一同编译到可执行文件中。<br>②动态编译的思路就是遇到需要调用的库函数时再去动态链接库中寻找。</p>
+<h3 id="延迟绑定"><a href="#延迟绑定" class="headerlink" title="延迟绑定"></a>延迟绑定</h3><p>在程序运行时，got表初始并不保存库函数的地址，只有在第一次调用过后，程序才将这一地址保存在got表中。</p>
+<h3 id="PLT和GOT"><a href="#PLT和GOT" class="headerlink" title="PLT和GOT"></a>PLT和GOT</h3><p>①GOT（Global Offset Tabal，全局偏移表）<br>GOT是数据段用于地址无关代码的Linux ELF文件中确定全局变量和外部函数地址的表。ELF中有.got和.plt.got两个GOT表，.got表用于全局变量的引用地址，.got.plt用于保存函数引用的地址。<br>②PLT（Procedure Linkage Table，程序链接表）<br>PLT是linux ELF文件中用于延迟绑定的表。</p>
+<h3 id="PLT与GOT"><a href="#PLT与GOT" class="headerlink" title="PLT与GOT"></a>PLT与GOT</h3><p>①不论是第几次调用外部函数，程序真正调用的其实是Plt表。<br>②plt表其实是一段段汇编指令构成。</p>
+<h3 id="PLT与GOT表"><a href="#PLT与GOT表" class="headerlink" title="PLT与GOT表"></a>PLT与GOT表</h3><p>①在第一次调用外部函数时，plt表首先会跳到对应的got表项中。<br>②由于并没有被调用过，此时got表存储的并不是目标函数的地址，此时的got表中存储的地址是plt表中的一段指令，其作用就是准备一些参数，进行动态解析。<br>③跳转回plt表后，plt表又会跳转回PLT表头，表头内容就是调用动态解析函数，将目标函数地址存放到got表中。<br><img src="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/1.png" alt="1.png"></p>
+<h3 id="PLT和GOT表"><a href="#PLT和GOT表" class="headerlink" title="PLT和GOT表"></a>PLT和GOT表</h3><p>在之后第二次以上的调用后，程序已经完成了延迟绑定，got表中已经存储了目标函数的地址，直接跳转即可。<br><img src="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/2.png" alt="2.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/" data-id="ckqt8m02l0004mcu6gbzia3xl" data-title="Pwn入门系列5——linux延迟绑定机制" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-pwn入门系列4——ELF文件格式" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" class="article-date">
+  <time class="dt-published" datetime="2021-06-30T16:08:01.000Z" itemprop="datePublished">2021-07-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="ELF文件"><a href="#ELF文件" class="headerlink" title="ELF文件"></a>ELF文件</h3><p>①linux环境中，二进制可执行文件的类型是（Executable and Linkable Format）文件。<br>②elf文件的格式比较简单，我们需要了解的就是elf文件中的各个节、段等概念。<br>③elf的基本信息存在于elf的头部信息中，这些信息包括指令的运行架构、程序入口等等内容，我们可以通过readelf -h <elf_name>来查看头部信息。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/1.png" alt="1.png"></elf_name></p>
+<h3 id="ELF文件-1"><a href="#ELF文件-1" class="headerlink" title="ELF文件"></a>ELF文件</h3><p>elf文件中包含许多个节(section)，各个节中存放不同的数据，这些节的信息存放在节头表中，readelf -S <file>查看，这些节主要包括：<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/2.png" alt="2.png"><br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/3.png" alt="3.png"><br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/4.png" alt="4.png"></file></p>
+<h3 id="ELF文件-2"><a href="#ELF文件-2" class="headerlink" title="ELF文件"></a>ELF文件</h3><p>①elf文件在加载进入内存时：<br>②elf文件的节(section)会被映射进内存中的段(segment)，而这一映射过程遵循的机制是根据各个节的权限来进行映射的。<br>③换句话说，可读可写的节被映射入一个段，只读的节被映射入一个段。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/5.png" alt="5.png"><br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/6.png" alt="6.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" data-id="ckqt8m02k0003mcu6b9094n0u" data-title="pwn入门系列4——ELF文件格式" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-pwn入门系列——函数调用流程与调用约定" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" class="article-date">
@@ -131,9 +217,62 @@
 
 
   
-    <article id="post-pwn入门系列——计算机内部数据存储格式" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <article id="post-pwn入门系列3——函数调用流程与调用约定" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" class="article-date">
+    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" class="article-date">
+  <time class="dt-published" datetime="2021-06-30T15:32:43.000Z" itemprop="datePublished">2021-06-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列3——函数调用流程与调用约定</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="函数调用流程"><a href="#函数调用流程" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①从一个实际例子出发<br>②main调用func_b，func_b调用func_a<br>③从main函数开始，逐步分析栈帧变化<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/1.png" alt="1.png"></p>
+<h3 id="函数调用流程-1"><a href="#函数调用流程-1" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①当运行到call func_b时main函数的栈帧<br>②RBP指向栈底，RSP指向栈顶<br>③这段栈帧存放了一些main函数的局部变量<br>④main函数要调用func_b，main只需要call func_b<br>⑤也就是push rip ；mov rip func_b；<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/2.png" alt="2.png"></p>
+<h3 id="函数调用流程-2"><a href="#函数调用流程-2" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①那么此时跳转到func_b继续执行，func_b直接执行主逻辑吗？<br>②显然不是的，被调用函数func_b还需要维护栈帧。<br>③具体来说，需要以下几步：<br>    push rbp；将调用函数的栈底指针保存。<br>    mov rbp,rsp ；将栈底指针指向现在的栈顶<br>    sub rsp,xxx；开辟被调用函数栈帧，此时上一步的rbp就是指向栈帧的底。</p>
+<h3 id="函数调用流程-3"><a href="#函数调用流程-3" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_b执行完维护栈帧操作后的栈布局<br>②所谓栈帧的维护就是维护rbp和rsp两个指针<br>③RSP永远指向栈顶<br>④RBP用来定位局部变量<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/3.png" alt="3.png"></p>
+<h3 id="函数调用流程-4"><a href="#函数调用流程-4" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①现在,func_b要调用func_a，其调用流程与main函数调用func_b基本一致。<br>②不同处在于返回地址、rbp和rsp指向的地址，以及开辟的栈空间的不同。</p>
+<h3 id="函数调用流程-5"><a href="#函数调用流程-5" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_b调用完func_a后的栈布局<br>②至此，示例的函数调用已经完毕<br>③现在，func_a执行完毕，要返回了<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/4.png" alt="4.png"></p>
+<h3 id="函数调用流程-6"><a href="#函数调用流程-6" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>leave指令<br>①作用是维护栈帧，通常出现在函数的结尾，与ret连用<br>②其实际作用为mov rsp,rbp;pop rbp;<br>③将栈顶指针指向栈帧底部，然后在栈中弹出新的栈底指针</p>
+<h3 id="函数调用流程-7"><a href="#函数调用流程-7" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①在一个函数执行结束返回时，会执行leave ; ret ;<br>②实际效果就是：mov rsp rbp; pop rbp ; pop eip ;<br>③此时我们观察程序执行到func_a时的栈帧。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/5.png" alt="5.png"></p>
+<h3 id="函数调用流程-8"><a href="#函数调用流程-8" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_a执行完毕返回后，栈布局如图：<br>②可以与之前的func_b未调用func_a前的栈帧对比<br>③一模一样，说明已经恢复了栈帧<br>④唯一不同之处此时的程序已经指向了c=1<br>⑤后面一条指令，说明func_a已经执行完毕</p>
+<h3 id="函数调用流程-9"><a href="#函数调用流程-9" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①以此类推，func_b执行完毕返回后，栈布局如图：<br>②在这之后，main函数继续执行，直到结束<br>③至此，函数的调用返回执行流程结束。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/6.png" alt="6.png"></p>
+<h3 id="函数调用流程-10"><a href="#函数调用流程-10" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①总结：<br>②调用函数：只需要将RIP压栈，即push rip，然后将rip赋值为被调用函数的起始地址，这一操作被隐性的内置在call指令中。<br>③被调用函数：push rbp ；mov rbp rsp ；sub rsp 0xxx。即保存调用函数的rbp指针，将自己的rbp指针指向栈顶，然后开辟栈空间给自己用，此时rbp就变成了被调用函数的栈底。<br>④函数返回：leave；ret；翻译过来就是：mov rsp rbp；pop rbp；pop rip；即恢复栈帧，返回调用函数的返回地址。</p>
+<h3 id="调用约定"><a href="#调用约定" class="headerlink" title="调用约定"></a>调用约定</h3><p>1、返回值：一般来说，一个函数的返回值会存储到RAX寄存器中。<br>2、X86-64函数的调用约定为：<br>①从左到右参数一次传递给rdi，rsi，rdx，rcx，r8，r9。<br>②如果一个函数的参数多于6个，则从右到左压入栈中传递。</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>syscall指令<br>①用于调用系统函数，调用时需要指明系统的调用号<br>②系统调用号存在rax寄存器中，然后不知好参数，执行syscall即可。</p>
+<h3 id="系统调用-1"><a href="#系统调用-1" class="headerlink" title="系统调用"></a>系统调用</h3><p><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/7.png" alt="7.png"></p>
+<h3 id="示例：调用read-0-buf-size-；"><a href="#示例：调用read-0-buf-size-；" class="headerlink" title="示例：调用read(0,buf,size)；"></a>示例：调用read(0,buf,size)；</h3><p>mov rax,0；       read’s syscall number<br>mov rdi,0;          first arg<br>mov rsi,buf;       second arg<br>mov rdx,size;     third arg<br>syscall;               execute read(0,buf,size)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" data-id="ckqt8m02j0002mcu6ap8e1uiw" data-title="Pwn入门系列3——函数调用流程与调用约定" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-pwn入门系列2——计算机内部数据存储格式" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" class="article-date">
   <time class="dt-published" datetime="2021-06-29T14:56:40.000Z" itemprop="datePublished">2021-06-29</time>
 </a>
     
@@ -145,7 +284,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+      <a class="p-name article-title" href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列2——计算机内部数据存储格式</a>
     </h1>
   
 
@@ -166,7 +305,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" data-id="ckqt4u67w0000lsu6bjuugakh" data-title="Pwn入门系列——计算机内部数据存储格式" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" data-id="ckqt8m02i0001mcu6dpdh0cgv" data-title="Pwn入门系列2——计算机内部数据存储格式" class="article-share-link">分享</a>
       
       
       
@@ -178,9 +317,9 @@
 
 
   
-    <article id="post-pwn入门系列——汇编语言基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <article id="post-pwn入门系列1——汇编语言基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" class="article-date">
+    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" class="article-date">
   <time class="dt-published" datetime="2021-06-28T15:55:46.000Z" itemprop="datePublished">2021-06-28</time>
 </a>
     
@@ -192,7 +331,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
+      <a class="p-name article-title" href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列1——汇编语言基础</a>
     </h1>
   
 
@@ -223,7 +362,7 @@
 <h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>①从高级语言层面看：<br>第一种方式申请了一个变量c，第二种直接在原本的变量上操作<br>②从汇编语言层面上看：<br>第一种指令数少，而第二种方式涉及到算术运算指令。<br>③从结果上看，可以直接：xchg rax rbx</p>
 <h3 id="在CTF中需要掌握到什么程度"><a href="#在CTF中需要掌握到什么程度" class="headerlink" title="在CTF中需要掌握到什么程度"></a>在CTF中需要掌握到什么程度</h3><p>①能看懂就行，绝大多数情况下不需要真正的编程（shellcode题目除外）<br>②IDA F5有时候不需要读汇编<br>③通常都是分析gadget,知道怎么用<br>④调试程序也不需要分析每一条汇编指令，单步执行然后查看寄存器状态即可。<br>⑤但是必须得会汇编，学PWN必须得会汇编</p>
 <h3 id="数"><a href="#数" class="headerlink" title="数"></a>数</h3><p>①数学是科学的基石，任何科技都离不开数学的支撑<br>②在计算机中，无论数据是以二进制或者十六进制十进制表示，本质上都是代表一个数<br>③尽管数据在计算机内部有很多存储形式（补码、原码、反码等）。但是本质上都是数。</p>
-<h3 id="数-1"><a href="#数-1" class="headerlink" title="数"></a>数</h3><p>计算机不能存储无限大的数，这个数的数值有一定的上限和下限。<br><img src="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png" alt="1.png"></p>
+<h3 id="数-1"><a href="#数-1" class="headerlink" title="数"></a>数</h3><p>计算机不能存储无限大的数，这个数的数值有一定的上限和下限。<br><img src="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png" alt="1.png"></p>
 <h3 id="数-2"><a href="#数-2" class="headerlink" title="数"></a>数</h3><p>①如果是Unsigned也就是无符号数，数据的每一位都是代表数据。<br>②如果是signed有符号数，那么数据的最高位会被当做符号位处理。<br>③0代表正数，1代表负数。</p>
 <h3 id="溢出"><a href="#溢出" class="headerlink" title="溢出"></a>溢出</h3><p>①数值有上下限范围，那么就不可避免的会有溢出情况<br>②以32位int为例，有以下四种溢出：<br>无符号上溢：0xffffffff+1变成0<br>无符号下溢：0-1变成0xffffffff<br>有符号上溢：有符号正数0x7fffffff+1变成负数0x80000000<br>有符号下溢：有符号数0x80000000-1变成正数0x7fffffff</p>
 <h3 id="溢出-1"><a href="#溢出-1" class="headerlink" title="溢出"></a>溢出</h3><p>这就是整数溢出，原因如下两点：<br>①存储位数不够<br>②溢出到符号位<br>整数溢出一般配合别的漏洞来使用。</p>
@@ -231,7 +370,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" data-id="ckqt4m1070000j0u6hzwbcxvj" data-title="Pwn入门系列——汇编语言基础" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%971%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" data-id="ckqt8m02e0000mcu68imtalg2" data-title="Pwn入门系列1——汇编语言基础" class="article-share-link">分享</a>
       
       
       
@@ -399,124 +538,6 @@
 
 
   
-    <article id="post-二进制软件逆向分析工具及实战" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/" class="article-date">
-  <time class="dt-published" datetime="2021-06-23T13:07:29.000Z" itemprop="datePublished">2021-06-23</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/">二进制软件逆向分析工具及实战</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/1.png" alt="1.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/2.png" alt="2.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/3.png" alt="3.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/4.png" alt="4.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/5.png" alt="5.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/6.png" alt="6.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/7.png" alt="7.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/8.png" alt="8.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/9.png" alt="9.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/10.png" alt="10.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/11.png" alt="11.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/12.png" alt="12.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/13.png" alt="13.png"><br><img src="/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/14.png" alt="14.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/23/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E5%8F%8A%E5%AE%9E%E6%88%98/" data-id="ckqhlj4nb0000fku68xeh3d4r" data-title="二进制软件逆向分析工具及实战" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-二进制软件逆向分析基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/" class="article-date">
-  <time class="dt-published" datetime="2021-06-22T12:32:58.000Z" itemprop="datePublished">2021-06-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/">二进制软件逆向分析基础</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/1.png" alt="1.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/2.png" alt="2.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/3.png" alt="3.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/4.png" alt="4.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/5.png" alt="5.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/6.png" alt="6.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/7.png" alt="7.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/8.png" alt="8.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/9.png" alt="9.png"><br><img src="/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/10.png" alt="10.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/22/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%BD%AF%E4%BB%B6%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%9F%BA%E7%A1%80/" data-id="ckqhkfhgc0000vwu63kq99ct2" data-title="二进制软件逆向分析基础" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-分箱式内存管理" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="article-date">
-  <time class="dt-published" datetime="2021-06-20T22:50:33.000Z" itemprop="datePublished">2021-06-21</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">分箱式内存管理</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>对于空闲的chunk，ptmalloc采用分箱式的内存管理方式，根据空闲chunk的大小和处于的状态将其放在四个不同的bin中，这四个空闲chunk的容器包括fastbins，unsorted bin，small bins和large bins。fast bins是小内存块的高速缓存，当一些大小小于64字节的chunk被回收时，首先会放入fast bins中，在分配小内存时，首先会查看fast bins中是否有合适的内存块，如果存在，则直接返回fast bins中的内存块，以加快分配速度。Unszhiyouorted bin‪只有一个，回收的chunk块必须先放到unsorted bin中，分配内存时会查看unsorted bin 中是否偶合适的chunk，如果找到满足条件的chunk，则直接返回给用户，否则将unsorted bin的所有chunk放入small bins或是large bins的所有chunk放入small bins或是large bins中。small bins用于存放固定大小的chunk，共64个bin，最小的chunk大小为16字节或32字节，每个bin的大小相差8字节或是16字节，当分配小内存块时，采用精确匹配的方式从small bin中查找合适的chunk。Large bins用于存储大于等于512或1024B的空闲chunk，这些chunk使用双向链表的形式按大小顺序排序，分配内存时按最近匹配方式从large bins中分配chunk。</p>
-<h1 id="Small-bins"><a href="#Small-bins" class="headerlink" title="Small bins"></a>Small bins</h1><p>ptmalloc使用small bins管理空闲小chunk，每个small bin中的chunk的大小与bin的index有如下关系：<br>Chunk_size=2<em>SIZE_SZ</em>index<br>在SIZE_SZ为4B的平台上，small bins中的chunk大小是以8B为公差的等差数列，最大的chunk大小为504B，最小的chunk大小为16B，所以实际共62个bin。分别为16B、24B、32B，……，504B。在SIZE_SZ为8B的平台上，small bins中的chunk大小是以16B为公差的等差数列，最大的chunk大小为1008B，最小的chunk大小为32B，所以实际共62个bin。分别为32B、48B、64B，……，1008B。<br>ptmalloc维护了62个双向环形链表（每个链表都具有链表头节点，加头结点的最大作用就是便于对链表内节点的统一处理，即简化编程），每一个链表内的各空闲chunk的大小一直，因此当应用程序需要分配某个字节大小的内存空间时直接在对应的链表内取就可以了，这样既可以很好的满足应用程序的内存空间申请请求而又不会出现太多的内存碎片。我们可以用下图来表示在SIZE_SZ位4B的平台上ptmalloc对512B字节一下的空闲chunk组织方式（所谓分箱机制）。</p>
-<h1 id="Large-bins"><a href="#Large-bins" class="headerlink" title="Large bins"></a>Large bins</h1><h1 id="Unsorted-bin"><a href="#Unsorted-bin" class="headerlink" title="Unsorted bin"></a>Unsorted bin</h1><h1 id="Fast-bins"><a href="#Fast-bins" class="headerlink" title="Fast bins"></a>Fast bins</h1>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/20/%E5%88%86%E7%AE%B1%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" data-id="ckq6r297c0000isu6f4qqgc2h" data-title="分箱式内存管理" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -554,7 +575,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
     </div>
   </div>
 
@@ -567,23 +588,23 @@
       <ul>
         
           <li>
+            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列3——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列2——计算机内部数据存储格式</a>
           </li>
         
       </ul>

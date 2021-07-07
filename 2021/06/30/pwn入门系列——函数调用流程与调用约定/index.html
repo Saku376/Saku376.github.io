@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Pwn入门系列——函数调用流程与调用约定 | Saku376&#39;s Pwn Sea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="函数调用流程①从一个实际例子出发②main调用func_b，func_b调用func_a③从main函数开始，逐步分析栈帧变化 函数调用流程①当运行到call func_b时main函数的栈帧②RBP指向栈底，RSP指向栈顶③这段栈帧存放了一些main函数的局部变量④main函数要调用func_b，main只需要call func_b⑤也就是push rip ；mov rip func_b； 函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pwn入门系列——函数调用流程与调用约定">
+<meta property="og:url" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/index.html">
+<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
+<meta property="og:description" content="函数调用流程①从一个实际例子出发②main调用func_b，func_b调用func_a③从main函数开始，逐步分析栈帧变化 函数调用流程①当运行到call func_b时main函数的栈帧②RBP指向栈底，RSP指向栈顶③这段栈帧存放了一些main函数的局部变量④main函数要调用func_b，main只需要call func_b⑤也就是push rip ；mov rip func_b； 函数">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/1.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/2.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/3.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/4.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/5.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/6.png">
+<meta property="og:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/7.png">
+<meta property="article:published_time" content="2021-06-30T15:32:43.000Z">
+<meta property="article:modified_time" content="2021-07-07T08:06:44.022Z">
+<meta property="article:author" content="Saku376">
+<meta property="article:tag" content="网络安全、二进制、pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-pwn入门系列——函数调用流程与调用约定" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" class="article-date">
+  <time class="dt-published" datetime="2021-06-30T15:32:43.000Z" itemprop="datePublished">2021-06-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Pwn入门系列——函数调用流程与调用约定
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="函数调用流程"><a href="#函数调用流程" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①从一个实际例子出发<br>②main调用func_b，func_b调用func_a<br>③从main函数开始，逐步分析栈帧变化<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/1.png" alt="1.png"></p>
+<h3 id="函数调用流程-1"><a href="#函数调用流程-1" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①当运行到call func_b时main函数的栈帧<br>②RBP指向栈底，RSP指向栈顶<br>③这段栈帧存放了一些main函数的局部变量<br>④main函数要调用func_b，main只需要call func_b<br>⑤也就是push rip ；mov rip func_b；<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/2.png" alt="2.png"></p>
+<h3 id="函数调用流程-2"><a href="#函数调用流程-2" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①那么此时跳转到func_b继续执行，func_b直接执行主逻辑吗？<br>②显然不是的，被调用函数func_b还需要维护栈帧。<br>③具体来说，需要以下几步：<br>    push rbp；将调用函数的栈底指针保存。<br>    mov rbp,rsp ；将栈底指针指向现在的栈顶<br>    sub rsp,xxx；开辟被调用函数栈帧，此时上一步的rbp就是指向栈帧的底。</p>
+<h3 id="函数调用流程-3"><a href="#函数调用流程-3" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_b执行完维护栈帧操作后的栈布局<br>②所谓栈帧的维护就是维护rbp和rsp两个指针<br>③RSP永远指向栈顶<br>④RBP用来定位局部变量<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/3.png" alt="3.png"></p>
+<h3 id="函数调用流程-4"><a href="#函数调用流程-4" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①现在,func_b要调用func_a，其调用流程与main函数调用func_b基本一致。<br>②不同处在于返回地址、rbp和rsp指向的地址，以及开辟的栈空间的不同。</p>
+<h3 id="函数调用流程-5"><a href="#函数调用流程-5" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_b调用完func_a后的栈布局<br>②至此，示例的函数调用已经完毕<br>③现在，func_a执行完毕，要返回了<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/4.png" alt="4.png"></p>
+<h3 id="函数调用流程-6"><a href="#函数调用流程-6" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>leave指令<br>①作用是维护栈帧，通常出现在函数的结尾，与ret连用<br>②其实际作用为mov rsp,rbp;pop rbp;<br>③将栈顶指针指向栈帧底部，然后在栈中弹出新的栈底指针</p>
+<h3 id="函数调用流程-7"><a href="#函数调用流程-7" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①在一个函数执行结束返回时，会执行leave ; ret ;<br>②实际效果就是：mov rsp rbp; pop rbp ; pop eip ;<br>③此时我们观察程序执行到func_a时的栈帧。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/5.png" alt="5.png"></p>
+<h3 id="函数调用流程-8"><a href="#函数调用流程-8" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①func_a执行完毕返回后，栈布局如图：<br>②可以与之前的func_b未调用func_a前的栈帧对比<br>③一模一样，说明已经恢复了栈帧<br>④唯一不同之处此时的程序已经指向了c=1<br>⑤后面一条指令，说明func_a已经执行完毕</p>
+<h3 id="函数调用流程-9"><a href="#函数调用流程-9" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①以此类推，func_b执行完毕返回后，栈布局如图：<br>②在这之后，main函数继续执行，直到结束<br>③至此，函数的调用返回执行流程结束。<br><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/6.png" alt="6.png"></p>
+<h3 id="函数调用流程-10"><a href="#函数调用流程-10" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p>①总结：<br>②调用函数：只需要将RIP压栈，即push rip，然后将rip赋值为被调用函数的起始地址，这一操作被隐性的内置在call指令中。<br>③被调用函数：push rbp ；mov rbp rsp ；sub rsp 0xxx。即保存调用函数的rbp指针，将自己的rbp指针指向栈顶，然后开辟栈空间给自己用，此时rbp就变成了被调用函数的栈底。<br>④函数返回：leave；ret；翻译过来就是：mov rsp rbp；pop rbp；pop rip；即恢复栈帧，返回调用函数的返回地址。</p>
+<h3 id="调用约定"><a href="#调用约定" class="headerlink" title="调用约定"></a>调用约定</h3><p>1、返回值：一般来说，一个函数的返回值会存储到RAX寄存器中。<br>2、X86-64函数的调用约定为：<br>①从左到右参数一次传递给rdi，rsi，rdx，rcx，r8，r9。<br>②如果一个函数的参数多于6个，则从右到左压入栈中传递。</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>syscall指令<br>①用于调用系统函数，调用时需要指明系统的调用号<br>②系统调用号存在rax寄存器中，然后不知好参数，执行syscall即可。</p>
+<h3 id="系统调用-1"><a href="#系统调用-1" class="headerlink" title="系统调用"></a>系统调用</h3><p><img src="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/7.png" alt="7.png"></p>
+<h3 id="示例：调用read-0-buf-size-；"><a href="#示例：调用read-0-buf-size-；" class="headerlink" title="示例：调用read(0,buf,size)；"></a>示例：调用read(0,buf,size)；</h3><p>mov rax,0；       read’s syscall number<br>mov rdi,0;          first arg<br>mov rsi,buf;       second arg<br>mov rdx,size;     third arg<br>syscall;               execute read(0,buf,size)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" data-id="ckqt76riz0000gcu692vjhxmo" data-title="Pwn入门系列——函数调用流程与调用约定" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">Pwn入门系列——计算机内部数据存储格式</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 Saku376<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

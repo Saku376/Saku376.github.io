@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Pwn入门系列——汇编语言基础 | Saku376&#39;s Pwn Sea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="一些量词bit          比特     1位byte       字节      8位word      字         16位dword    双字      32位qword    四字      64位 计算机寻址方式① 当前主流操作系统中，都是以字节为寻址单位进行寻址②意味着计算机访问的最小单位是一个字节 前言①计算机并不能直接运行高级语言②我们编写的高级语言程序需要进行编译后">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pwn入门系列——汇编语言基础">
+<meta property="og:url" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
+<meta property="og:description" content="一些量词bit          比特     1位byte       字节      8位word      字         16位dword    双字      32位qword    四字      64位 计算机寻址方式① 当前主流操作系统中，都是以字节为寻址单位进行寻址②意味着计算机访问的最小单位是一个字节 前言①计算机并不能直接运行高级语言②我们编写的高级语言程序需要进行编译后">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
+<meta property="article:published_time" content="2021-06-28T15:55:46.000Z">
+<meta property="article:modified_time" content="2021-07-07T06:58:19.921Z">
+<meta property="article:author" content="Saku376">
+<meta property="article:tag" content="网络安全、二进制、pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-pwn入门系列——汇编语言基础" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time class="dt-published" datetime="2021-06-28T15:55:46.000Z" itemprop="datePublished">2021-06-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Pwn入门系列——汇编语言基础
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h3 id="一些量词"><a href="#一些量词" class="headerlink" title="一些量词"></a>一些量词</h3><p>bit          比特     1位<br>byte       字节      8位<br>word      字         16位<br>dword    双字      32位<br>qword    四字      64位</p>
+<h3 id="计算机寻址方式"><a href="#计算机寻址方式" class="headerlink" title="计算机寻址方式"></a>计算机寻址方式</h3><p>① 当前主流操作系统中，都是以字节为寻址单位进行寻址<br>②意味着计算机访问的最小单位是一个字节</p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>①计算机并不能直接运行高级语言<br>②我们编写的高级语言程序需要进行编译后才能在计算机上运行<br>③高级语言经过编译之后，经过编译器处理，被打包成一个可执行文件的格式<br>④那么，计算机真正能够被运行的是什么</p>
+<h3 id="机器码——0和1"><a href="#机器码——0和1" class="headerlink" title="机器码——0和1"></a>机器码——0和1</h3><p>①深入底层后，计算机其实很笨，只能完成一些很基本的操作，但是速度很快。<br>②机器码就是一个个0和1组成的，为了方便人类的阅读，一般都以16进制呈现。<br>③尽管如此，一个个16进制字符可读性仍然很差<br>④汇编语言就是把这些及其指令代码以助记符的形式翻译一下，方便人类的阅读。</p>
+<h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><p>①计算机的指令都是由CPU来执行<br>②在计算机系统结构中，CPU和内存是分开的。<br>③寄存器存在于CPU中，是CPU的直接操作对象。</p>
+<h3 id="寄存器种类"><a href="#寄存器种类" class="headerlink" title="寄存器种类"></a>寄存器种类</h3><p><strong>寄存器名称</strong>               <strong>作用</strong>                                           <strong>备注</strong><br>      RAX                       通用寄存器                    低32位：EAX ；低16位：AX；高8位：AH；低8位：AL<br>      RBX                       通用寄存器                                           同上<br>      RCX                       通用寄存器                                           同上<br>      RDX                       通用寄存器                                           同上<br>      RDI                        通用寄存器                                      低32位：EDI<br>      RSI                         通用寄存器                                           同上<br>      R8                          通用寄存器                    低32位：R8d；低16位：R8W；低8位：R8B<br>      R9                          通用寄存器                                           同上<br>      R10                        通用寄存器                                           同上<br>      R11                        通用寄存器                                           同上<br>      R12                        通用寄存器                                           同上<br>      R13                        通用寄存器                                           同上<br>      R14                        通用寄存器                                           同上<br>      R15                        通用寄存器                                           同上</p>
+<h3 id="寄存器-1"><a href="#寄存器-1" class="headerlink" title="寄存器"></a>寄存器</h3><p>①上述的通用寄存器，通常用于参数传递以及算数运算等通用场合<br>②RSP为栈顶指针，RBP为栈底指针，二者用于维护程序运行时的函数栈<br>③EFLAGS为标志位寄存器，用于存储CPU运行时计算过程中的状态，如进位溢出等。<br>④RIP指针用于存储CPU下一条将会执行的指针，不能直接修改，正常情况下会每一次运行一条指令自增一条指令的长度，当发生跳转时才会以其他形式改变其值。</p>
+<h3 id="寻址方式"><a href="#寻址方式" class="headerlink" title="寻址方式"></a>寻址方式</h3><p><strong>寻址方式</strong>                          <strong>示例</strong>                               <strong>实际访问</strong><br>   立即寻址                              1234h                             1234h这个数字本身<br>   直接寻址                              [1234h]                              内存地址1234h<br>  寄存器寻址                             RAX                                  访问RAX寄存器<br>寄存器间接寻址                        [RAX]                    访问RAX寄存器存储的值的这一内存地址<br>   变址寻址                               [RAX+1234h]     访问RAX寄存器存储的值+1234h这一内存地址</p>
+<h3 id="汇编指令"><a href="#汇编指令" class="headerlink" title="汇编指令"></a>汇编指令</h3><p>①计算机只能完成很基本的操作。这些操作大多是对一些寄存器的值进行修改<br>②这些指令通过排列组合，完成复杂的功能<br>③两种格式Intel和AT&amp;T<br>④二者的差别主要在于源和目的操作数顺序上<br>⑤可以通过立即数寻址来进行判断</p>
+<h3 id="汇编指令-1"><a href="#汇编指令-1" class="headerlink" title="汇编指令"></a>汇编指令</h3><p><strong>指令类型</strong>            <strong>操作码</strong>       <strong>例子(intel格式)</strong>           <strong>实际效果</strong><br>  数据传送指令            mov                 mov rax rbx                     rax=rbx<br>  取地址指令      lea                   lea rax [rbx]                     rax=&amp;*rbx<br>  算数运算指令            add                  add rax rbx                      rax=rax+rbx<br>                                 sub                   sub rax rbx                      rax=rax-rbx<br>  逻辑运算指令            and                  and rax rbx                      rax=rax&amp;rbx<br>                                 xor                    xor rax rbx                      rax=rax | rbx<br>  函数调用指令            call                   call 1234h                    执行内存地址1234h处的函数<br>  函数返回指令            ret                        ret                               函数返回<br>       比较                    cmp                 cmp rax rbx                  比较rax与rbx，结果保存在EFLAG寄存器<br>  无条件跳转               jmp                  jmp  1234h                       eip=1234h<br>  栈操作指令               push                push rax                        将rax存储的值压栈<br>                                 pop                 pop rax                          将栈顶的值赋值给rax,rsp+=8</p>
+<h3 id="汇编指令-2"><a href="#汇编指令-2" class="headerlink" title="汇编指令"></a>汇编指令</h3><p>①不难发现两个操作数指令的目的寄存器都是第一个寄存器<br>②call和jmp指令看起来效果一样，但是描述却有些不同<br>③call的话是调用，需要一些函数地址的保存压栈参数传递的操作<br>④jmp指令类似于函数中的if else语句，只设计跳转，不能作为函数调用来使用<br>⑤另外在pop时rsp是+8而不是-8</p>
+<h3 id="汇编指令-3"><a href="#汇编指令-3" class="headerlink" title="汇编指令"></a>汇编指令</h3><p>①计算机在执行汇编代码时，只会顺序执行<br>②通过call、jmp、ret指令来完成跳转<br>③所有汇编指令代码的执行流并不像高级语言程序一样流程明确<br>④汇编代码的经常性跳转会导致可读性差</p>
+<h3 id="汇编指令-4"><a href="#汇编指令-4" class="headerlink" title="汇编指令"></a>汇编指令</h3><p>比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int a=0</span><br><span class="line"><span class="keyword">while</span>(a&lt;100)</span><br><span class="line">a++；</span><br><span class="line">a=0</span><br></pre></td></tr></table></figure>
+<p>翻译成汇编</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mov rax,0 //int a=0</span><br><span class="line">label1:</span><br><span class="line">inc rax; //a++</span><br><span class="line">cmp rax 100</span><br><span class="line">jge label2;  // <span class="keyword">if</span> a&gt;=100,<span class="built_in">break</span></span><br><span class="line">jmp label1; //loop</span><br><span class="line">label2:</span><br><span class="line">mov rax , 0</span><br></pre></td></tr></table></figure>
+
+<h3 id="汇编指令-5"><a href="#汇编指令-5" class="headerlink" title="汇编指令"></a>汇编指令</h3><p>①这里的jge是通过eflag寄存器中的标志位来判断<br>②而eflag标志位是通过cmp来设置</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>①int a,b //存放于rax和rbx中<br>②两种swap方式：<br>    第一种：int c=a;a=b;b=c<br>    第二种：a=a+b;b=a-b;a=a-b;</p>
+<h3 id="深入到汇编"><a href="#深入到汇编" class="headerlink" title="深入到汇编"></a>深入到汇编</h3><p>①第一种方式相当于：<br>mov rcx rax;<br>mov rax rbx;<br>mov rbx rcx;<br>②第二种方式相当于：<br>add rax rbx;<br>mov rcx rax;<br>sub rcx rbx;<br>mov rbx rcx;<br>sub rax rbx;</p>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p>①从高级语言层面看：<br>第一种方式申请了一个变量c，第二种直接在原本的变量上操作<br>②从汇编语言层面上看：<br>第一种指令数少，而第二种方式涉及到算术运算指令。<br>③从结果上看，可以直接：xchg rax rbx</p>
+<h3 id="在CTF中需要掌握到什么程度"><a href="#在CTF中需要掌握到什么程度" class="headerlink" title="在CTF中需要掌握到什么程度"></a>在CTF中需要掌握到什么程度</h3><p>①能看懂就行，绝大多数情况下不需要真正的编程（shellcode题目除外）<br>②IDA F5有时候不需要读汇编<br>③通常都是分析gadget,知道怎么用<br>④调试程序也不需要分析每一条汇编指令，单步执行然后查看寄存器状态即可。<br>⑤但是必须得会汇编，学PWN必须得会汇编</p>
+<h3 id="数"><a href="#数" class="headerlink" title="数"></a>数</h3><p>①数学是科学的基石，任何科技都离不开数学的支撑<br>②在计算机中，无论数据是以二进制或者十六进制十进制表示，本质上都是代表一个数<br>③尽管数据在计算机内部有很多存储形式（补码、原码、反码等）。但是本质上都是数。</p>
+<h3 id="数-1"><a href="#数-1" class="headerlink" title="数"></a>数</h3><p>计算机不能存储无限大的数，这个数的数值有一定的上限和下限。<br><img src="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/1.png" alt="1.png"></p>
+<h3 id="数-2"><a href="#数-2" class="headerlink" title="数"></a>数</h3><p>①如果是Unsigned也就是无符号数，数据的每一位都是代表数据。<br>②如果是signed有符号数，那么数据的最高位会被当做符号位处理。<br>③0代表正数，1代表负数。</p>
+<h3 id="溢出"><a href="#溢出" class="headerlink" title="溢出"></a>溢出</h3><p>①数值有上下限范围，那么就不可避免的会有溢出情况<br>②以32位int为例，有以下四种溢出：<br>无符号上溢：0xffffffff+1变成0<br>无符号下溢：0-1变成0xffffffff<br>有符号上溢：有符号正数0x7fffffff+1变成负数0x80000000<br>有符号下溢：有符号数0x80000000-1变成正数0x7fffffff</p>
+<h3 id="溢出-1"><a href="#溢出-1" class="headerlink" title="溢出"></a>溢出</h3><p>这就是整数溢出，原因如下两点：<br>①存储位数不够<br>②溢出到符号位<br>整数溢出一般配合别的漏洞来使用。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/" data-id="ckqt4m1070000j0u6hzwbcxvj" data-title="Pwn入门系列——汇编语言基础" class="article-share-link">分享</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          Pwn入门系列——计算机内部数据存储格式
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">后一篇</strong>
+      <div class="article-nav-title">漏洞挖掘技术</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">Pwn入门系列——函数调用流程与调用约定</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/29/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/">Pwn入门系列——计算机内部数据存储格式</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/28/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%97%E2%80%94%E2%80%94%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">Pwn入门系列——汇编语言基础</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/">漏洞挖掘技术</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/26/linux%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA/">Linux缓冲区溢出</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 Saku376<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

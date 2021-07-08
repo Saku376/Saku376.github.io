@@ -4,23 +4,24 @@
   <meta charset="utf-8">
   
   
-  <title>Pwn入门系列5——linux延迟绑定机制 | Saku376&#39;s Pwn Sea</title>
+  <title>Pwn入门系列7——栈溢出原理 | Saku376&#39;s Pwn Sea</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="动态链接库①我们程序开发过程中都会用到系统函数，比如read，write，open等。②这些系统函数不需要我们实现，因为系统已经帮你完成这些工作，只需要调用即可，存放这些函数的库文件就是动态链接库。③通常情况下，我们对于pwn题接触到的动态链接库就是libc.so文件。 静态编译与动态编译①静态编译的思路就是将所有可能运行到的库函数一同编译到可执行文件中。②动态编译的思路就是遇到需要调用的库函数时">
+  <meta name="description" content="栈溢出①函数中的存储在栈中的局部变量数组边界检查不严格发生越界写，造成用户输入覆盖到缓冲区外的数据内容。②由于栈中同时存在着与函数调用参数相关信息，栈溢出可以导致控制流劫持。 栈溢出过程①main函数调用b，b函数调用a。②缓冲区溢出发生在a函数中。③buf的长度是80，但是却读入了200长度。④分析程序运行至a时的栈帧。⑤栈中存放buf和返回地址等信息。⑥buf的长度为80，紧邻b函数的rbp指">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pwn入门系列5——linux延迟绑定机制">
-<meta property="og:url" content="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:title" content="Pwn入门系列7——栈溢出原理">
+<meta property="og:url" content="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
-<meta property="og:description" content="动态链接库①我们程序开发过程中都会用到系统函数，比如read，write，open等。②这些系统函数不需要我们实现，因为系统已经帮你完成这些工作，只需要调用即可，存放这些函数的库文件就是动态链接库。③通常情况下，我们对于pwn题接触到的动态链接库就是libc.so文件。 静态编译与动态编译①静态编译的思路就是将所有可能运行到的库函数一同编译到可执行文件中。②动态编译的思路就是遇到需要调用的库函数时">
+<meta property="og:description" content="栈溢出①函数中的存储在栈中的局部变量数组边界检查不严格发生越界写，造成用户输入覆盖到缓冲区外的数据内容。②由于栈中同时存在着与函数调用参数相关信息，栈溢出可以导致控制流劫持。 栈溢出过程①main函数调用b，b函数调用a。②缓冲区溢出发生在a函数中。③buf的长度是80，但是却读入了200长度。④分析程序运行至a时的栈帧。⑤栈中存放buf和返回地址等信息。⑥buf的长度为80，紧邻b函数的rbp指">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/1.png">
-<meta property="og:image" content="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/2.png">
-<meta property="article:published_time" content="2021-07-01T16:24:51.000Z">
-<meta property="article:modified_time" content="2021-07-07T08:46:36.194Z">
+<meta property="og:image" content="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/1.png">
+<meta property="og:image" content="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/2.png">
+<meta property="og:image" content="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/3.png">
+<meta property="article:published_time" content="2021-07-04T15:50:56.000Z">
+<meta property="article:modified_time" content="2021-07-08T08:04:13.629Z">
 <meta property="article:author" content="Saku376">
 <meta property="article:tag" content="网络安全、二进制、pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/1.png">
+<meta name="twitter:image" content="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/1.png">
   
     <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
   
@@ -81,10 +82,10 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-pwn入门系列5——linux延迟绑定机制" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-pwn入门系列7——栈溢出原理" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/" class="article-date">
-  <time class="dt-published" datetime="2021-07-01T16:24:51.000Z" itemprop="datePublished">2021-07-02</time>
+    <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/" class="article-date">
+  <time class="dt-published" datetime="2021-07-04T15:50:56.000Z" itemprop="datePublished">2021-07-04</time>
 </a>
     
   </div>
@@ -95,7 +96,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Pwn入门系列5——linux延迟绑定机制
+      Pwn入门系列7——栈溢出原理
     </h1>
   
 
@@ -103,18 +104,16 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h3 id="动态链接库"><a href="#动态链接库" class="headerlink" title="动态链接库"></a>动态链接库</h3><p>①我们程序开发过程中都会用到系统函数，比如read，write，open等。<br>②这些系统函数不需要我们实现，因为系统已经帮你完成这些工作，只需要调用即可，存放这些函数的库文件就是动态链接库。<br>③通常情况下，我们对于pwn题接触到的动态链接库就是libc.so文件。</p>
-<h3 id="静态编译与动态编译"><a href="#静态编译与动态编译" class="headerlink" title="静态编译与动态编译"></a>静态编译与动态编译</h3><p>①静态编译的思路就是将所有可能运行到的库函数一同编译到可执行文件中。<br>②动态编译的思路就是遇到需要调用的库函数时再去动态链接库中寻找。</p>
-<h3 id="延迟绑定"><a href="#延迟绑定" class="headerlink" title="延迟绑定"></a>延迟绑定</h3><p>在程序运行时，got表初始并不保存库函数的地址，只有在第一次调用过后，程序才将这一地址保存在got表中。</p>
-<h3 id="PLT和GOT"><a href="#PLT和GOT" class="headerlink" title="PLT和GOT"></a>PLT和GOT</h3><p>①GOT（Global Offset Tabal，全局偏移表）<br>GOT是数据段用于地址无关代码的Linux ELF文件中确定全局变量和外部函数地址的表。ELF中有.got和.plt.got两个GOT表，.got表用于全局变量的引用地址，.got.plt用于保存函数引用的地址。<br>②PLT（Procedure Linkage Table，程序链接表）<br>PLT是linux ELF文件中用于延迟绑定的表。</p>
-<h3 id="PLT与GOT"><a href="#PLT与GOT" class="headerlink" title="PLT与GOT"></a>PLT与GOT</h3><p>①不论是第几次调用外部函数，程序真正调用的其实是Plt表。<br>②plt表其实是一段段汇编指令构成。</p>
-<h3 id="PLT与GOT表"><a href="#PLT与GOT表" class="headerlink" title="PLT与GOT表"></a>PLT与GOT表</h3><p>①在第一次调用外部函数时，plt表首先会跳到对应的got表项中。<br>②由于并没有被调用过，此时got表存储的并不是目标函数的地址，此时的got表中存储的地址是plt表中的一段指令，其作用就是准备一些参数，进行动态解析。<br>③跳转回plt表后，plt表又会跳转回PLT表头，表头内容就是调用动态解析函数，将目标函数地址存放到got表中。<br><img src="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/1.png" alt="1.png"></p>
-<h3 id="PLT和GOT表"><a href="#PLT和GOT表" class="headerlink" title="PLT和GOT表"></a>PLT和GOT表</h3><p>在之后第二次以上的调用后，程序已经完成了延迟绑定，got表中已经存储了目标函数的地址，直接跳转即可。<br><img src="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/2.png" alt="2.png"></p>
+        <h3 id="栈溢出"><a href="#栈溢出" class="headerlink" title="栈溢出"></a>栈溢出</h3><p>①函数中的存储在栈中的局部变量数组边界检查不严格发生越界写，造成用户输入覆盖到缓冲区外的数据内容。<br>②由于栈中同时存在着与函数调用参数相关信息，栈溢出可以导致控制流劫持。</p>
+<h3 id="栈溢出过程"><a href="#栈溢出过程" class="headerlink" title="栈溢出过程"></a>栈溢出过程</h3><p>①main函数调用b，b函数调用a。<br>②缓冲区溢出发生在a函数中。<br>③buf的长度是80，但是却读入了200长度。<br><img src="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/1.png" alt="1.png"><br>④分析程序运行至a时的栈帧。<br>⑤栈中存放buf和返回地址等信息。<br>⑥buf的长度为80，紧邻b函数的rbp指针和返回地址。<br><img src="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/2.png" alt="2.png"><br>⑦如果我们此时读入80字节长度的数据，没问题。<br>⑧如果我们读入长度超过80字节的数据呢？<br><img src="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/3.png" alt="3.png"></p>
+<h3 id="栈溢出过程-1"><a href="#栈溢出过程-1" class="headerlink" title="栈溢出过程"></a>栈溢出过程</h3><p>①这里我们读入‘X’<em>80 + ‘A’</em>8 + ‘B’<em>8<br>②可以看到，原本存储b函数的rbp地址内容已经被覆盖成了”AAAAAAAA”<br>③返回地址已经被覆盖为了”BBBBBBBB”<br>④这时候如果程序返回，程序会返回一个异常错误。<br>⑤因为”BBBBBBBB”这个字符串，翻译到16进制：0x4242424242424242，这个地址在内存中不是一个合法的代码地址。<br>⑥我们变换一下思路，这次我们输入的数据是‘X’</em>80 + ‘A’*8 + target addr<br>⑦target addrs是我们想要程序跳转到的地方。<br>⑧这时候，程序的执行流就被我们控制了。</p>
+<h3 id="rbp"><a href="#rbp" class="headerlink" title="rbp"></a>rbp</h3><p>①那么RBP我们就不管了吗？<br>②是的，一般情况下，RBP的值不需要我们构造。<br>③RBP是程序用来定位栈中的局部变量地址的。<br>④除非涉及到RBP寄存器传递参数，一般的ROP不需要管RBP。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>①栈溢出的原理就是栈中存储的局部变量数组发生了溢出，覆盖了栈中的其他数据。<br>②将返回地址覆盖为我们期望的目标地址，几个劫持控制流。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/" data-id="ckqt8m02l0004mcu6gbzia3xl" data-title="Pwn入门系列5——linux延迟绑定机制" class="article-share-link">分享</a>
+      <a data-url="http://example.com/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/" data-id="ckqumjdv30000isu6a2pnetxz" data-title="Pwn入门系列7——栈溢出原理" class="article-share-link">分享</a>
       
       
       
@@ -124,19 +123,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2021/07/02/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%976%E2%80%94%E2%80%94linux%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          Pwn入门系列6——linux保护机制
+          Pwn入门系列8——基本栈溢出
         
       </div>
     </a>
   
   
-    <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2021/07/02/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%976%E2%80%94%E2%80%94linux%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">pwn入门系列4——ELF文件格式</div>
+      <div class="article-nav-title">Pwn入门系列6——linux保护机制</div>
     </a>
   
 </nav>

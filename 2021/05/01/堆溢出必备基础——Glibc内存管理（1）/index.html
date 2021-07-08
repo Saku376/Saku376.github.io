@@ -1,262 +1,468 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="个人博客，分享网络安全特别是pwn">
+  <meta name="author" content="Saku376">
+  <meta name="keywords" content="网络安全、二进制、pwn">
   
-  <title>堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1） | Saku376&#39;s Pwn Sea</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="一、什么是glibc？glibc与libc的区别？glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。 glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。 延伸问题">
-<meta property="og:type" content="article">
-<meta property="og:title" content="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）">
-<meta property="og:url" content="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/index.html">
-<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
-<meta property="og:description" content="一、什么是glibc？glibc与libc的区别？glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。 glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。 延伸问题">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png">
-<meta property="og:image" content="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png">
-<meta property="og:image" content="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png">
-<meta property="og:image" content="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png">
-<meta property="article:published_time" content="2021-05-02T05:20:27.000Z">
-<meta property="article:modified_time" content="2021-05-02T05:56:51.475Z">
-<meta property="article:author" content="Saku376">
-<meta property="article:tag" content="网络安全、二进制、pwn">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+  <title>堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1） - Saku376&#39;s Pwn Sea</title>
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
   
     
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
 
   
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 5.4.0"></head>
 
+
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
-      </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
-        </h2>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Fluid</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
         
-          <a class="main-nav-link" href="/">Home</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
-          <a class="main-nav-link" href="/archives">Archives</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
-      </nav>
-      <nav id="sub-nav">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
-        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-
-      <div class="outer">
-        <section id="main"><article id="post-堆溢出必备基础——Glibc内存管理（1）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" class="article-date">
-  <time class="dt-published" datetime="2021-05-02T05:20:27.000Z" itemprop="datePublished">2021-05-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
-  
-    <h1 class="p-name article-title" itemprop="headline name">
-      堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="一、什么是glibc？glibc与libc的区别？"><a href="#一、什么是glibc？glibc与libc的区别？" class="headerlink" title="一、什么是glibc？glibc与libc的区别？"></a>一、什么是glibc？glibc与libc的区别？</h2><p>glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。</p>
-<p>glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。</p>
-<p>延伸问题——ANSI C和GUN C是什么玩意？<br>ANSI C：美国国家标准协会（ANSI）对C语言发布的标准<br>GUN C：简单理解为GUN组织对C语言发布的标准</p>
-<h2 id="二、linux进程内存布局"><a href="#二、linux进程内存布局" class="headerlink" title="二、linux进程内存布局"></a>二、linux进程内存布局</h2><h3 id="32位模式下进程内存经典布局"><a href="#32位模式下进程内存经典布局" class="headerlink" title="32位模式下进程内存经典布局"></a>32位模式下进程内存经典布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png" alt="1.png"></p>
-<p>这种布局是linux内核2.6.7以前的默认进程内存布局形式，mmap区域和栈区域相对增长，这意味着堆中只有1GB的内存地址空间可以使用，继续增长就会进入mmap映射区域，这是该内核版本的缺陷。这是由于32位模式地址空间限制造成的，所以内核引入了另一种虚拟地址空间的布局形式。但是对于64位系统而言，它提供了巨大的虚拟地址空间，这种布局就相当好。</p>
-<h3 id="32位模式下进程默认内存布局"><a href="#32位模式下进程默认内存布局" class="headerlink" title="32位模式下进程默认内存布局"></a>32位模式下进程默认内存布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png" alt="2.png"></p>
-<p>从上图可以看到，栈至顶向下扩展，并且栈是有界的。堆至底向上扩展，mmap映射区域至顶向下扩展，直至耗尽虚拟地址空间中的剩余区域，这种结构便于C运行时库使用mmap映射区域和堆进行内存分配。上图的布局形式是在内核2.6.7以后才引入的，这是32位模式下进程的默认内存布局形式。</p>
-<h3 id="64位模式下进程内存布局"><a href="#64位模式下进程内存布局" class="headerlink" title="64位模式下进程内存布局"></a>64位模式下进程内存布局</h3><p>在64位模式下各个区域的起始位置是什么呢？对于AMD64系统，内存布局采用经典内存布局，text的起始地址为，text的起始地址为0x0000000000400000，堆紧接着BSS段向上增长，mmap映射区域开始位置一般设为TASK_SIZE/3。<br>下面的图我其实看不懂（不知道怎么算地址）直接贴出来：<br><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png" alt="3.png"></p>
-<p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png" alt="4.png"><br>上图是X86_64下的linux进程的默认内存布局形式，这只是一个示意图，当前内核默认配置下，进程的栈和mmap映射区域并不是从一个固定地址开始，并且每次启动时的值都不一样，这是程序启动时随机改变这些值的设置，使得使用缓冲区溢出进行攻击更加困难。在CTF中，这种保护叫做ASLR。当然也可以让进程中的栈和mmap映射区域从一个固定位置开始，只需要设置全局变量randomize_va_space的值为0，这个变量默认值为1。用户可以通过设置/proc/sys/kernel/randomize_va_space来停用该特性，也可以用如下命令：<br>sudo sysctl -w kernel.randomize_va_space=0</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/01/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/" data-id="cko6rhiga00003ou67s1relox" data-title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">前一篇</strong>
-      <div class="article-nav-title">
         
-          人活着就是为了——北京邮电大学
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">通过GDB调试理解GOT表和PLT表</div>
-    </a>
-  
-</nav>
-
-  
-</article>
-
-
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签云</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">归档</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">最新文章</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/">Pwn入门系列8——基本栈溢出</a>
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
           </li>
         
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/">Pwn入门系列7——栈溢出原理</a>
-          </li>
         
-          <li>
-            <a href="/2021/07/02/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%976%E2%80%94%E2%80%94linux%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/">Pwn入门系列6——linux保护机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
           </li>
         
       </ul>
     </div>
   </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2021 Saku376<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
 </nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-05-02 13:20" pubdate>
+        2021年5月2日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      745 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      8
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">堆溢出必备基础——Glibc内存管理与ptmalloc源码分析（1）</h1>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是glibc？glibc与libc的区别？"><a href="#一、什么是glibc？glibc与libc的区别？" class="headerlink" title="一、什么是glibc？glibc与libc的区别？"></a>一、什么是glibc？glibc与libc的区别？</h2><p>glibc和libc都是linux下的c函数库，但是libc是linux下的ANSI C的函数库，glibc是GUN C的函数库。</p>
+<p>glibc是gnu发布的libc库，也是c运行库。glibc是linux系统中最底层的API（应用程序开发接口），几乎其他任何的运行库都会依赖于glibc。glibc封装了linux操作系统所提供的系统服务。</p>
+<p>延伸问题——ANSI C和GUN C是什么玩意？<br>ANSI C：美国国家标准协会（ANSI）对C语言发布的标准<br>GUN C：简单理解为GUN组织对C语言发布的标准</p>
+<h2 id="二、linux进程内存布局"><a href="#二、linux进程内存布局" class="headerlink" title="二、linux进程内存布局"></a>二、linux进程内存布局</h2><h3 id="32位模式下进程内存经典布局"><a href="#32位模式下进程内存经典布局" class="headerlink" title="32位模式下进程内存经典布局"></a>32位模式下进程内存经典布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/1.png" srcset="/img/loading.gif" lazyload alt="1.png"></p>
+<p>这种布局是linux内核2.6.7以前的默认进程内存布局形式，mmap区域和栈区域相对增长，这意味着堆中只有1GB的内存地址空间可以使用，继续增长就会进入mmap映射区域，这是该内核版本的缺陷。这是由于32位模式地址空间限制造成的，所以内核引入了另一种虚拟地址空间的布局形式。但是对于64位系统而言，它提供了巨大的虚拟地址空间，这种布局就相当好。</p>
+<h3 id="32位模式下进程默认内存布局"><a href="#32位模式下进程默认内存布局" class="headerlink" title="32位模式下进程默认内存布局"></a>32位模式下进程默认内存布局</h3><p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/2.png" srcset="/img/loading.gif" lazyload alt="2.png"></p>
+<p>从上图可以看到，栈至顶向下扩展，并且栈是有界的。堆至底向上扩展，mmap映射区域至顶向下扩展，直至耗尽虚拟地址空间中的剩余区域，这种结构便于C运行时库使用mmap映射区域和堆进行内存分配。上图的布局形式是在内核2.6.7以后才引入的，这是32位模式下进程的默认内存布局形式。</p>
+<h3 id="64位模式下进程内存布局"><a href="#64位模式下进程内存布局" class="headerlink" title="64位模式下进程内存布局"></a>64位模式下进程内存布局</h3><p>在64位模式下各个区域的起始位置是什么呢？对于AMD64系统，内存布局采用经典内存布局，text的起始地址为，text的起始地址为0x0000000000400000，堆紧接着BSS段向上增长，mmap映射区域开始位置一般设为TASK_SIZE/3。<br>下面的图我其实看不懂（不知道怎么算地址）直接贴出来：<br><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/3.png" srcset="/img/loading.gif" lazyload alt="3.png"></p>
+<p><img src="/2021/05/02/%E5%A0%86%E6%BA%A2%E5%87%BA%E5%BF%85%E5%A4%87%E5%9F%BA%E7%A1%80%E2%80%94%E2%80%94Glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%881%EF%BC%89/4.png" srcset="/img/loading.gif" lazyload alt="4.png"><br>上图是X86_64下的linux进程的默认内存布局形式，这只是一个示意图，当前内核默认配置下，进程的栈和mmap映射区域并不是从一个固定地址开始，并且每次启动时的值都不一样，这是程序启动时随机改变这些值的设置，使得使用缓冲区溢出进行攻击更加困难。在CTF中，这种保护叫做ASLR。当然也可以让进程中的栈和mmap映射区域从一个固定位置开始，只需要设置全局变量randomize_va_space的值为0，这个变量默认值为1。用户可以通过设置/proc/sys/kernel/randomize_va_space来停用该特性，也可以用如下命令：<br>sudo sysctl -w kernel.randomize_va_space=0</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/05/02/%E4%BA%BA%E6%B4%BB%E7%9D%80%E5%B0%B1%E6%98%AF%E4%B8%BA%E4%BA%86%E2%80%94%E2%80%94%E5%8C%97%E4%BA%AC%E9%82%AE%E7%94%B5%E5%A4%A7%E5%AD%A6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">人活着就是为了——北京邮电大学</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/04/30/%E9%80%9A%E8%BF%87GDB%E8%B0%83%E8%AF%95%E7%90%86%E8%A7%A3GOT%E8%A1%A8%E5%92%8CPLT%E8%A1%A8/">
+                        <span class="hidden-mobile">通过GDB调试理解GOT表和PLT表</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Saku376/commit-utterance');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
     
 
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
 
-<script src="/js/jquery-3.4.1.min.js"></script>
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
 
 
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
-<script src="/js/script.js"></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
 
 
 
 
 
-  </div>
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
 </body>
 </html>

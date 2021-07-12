@@ -182,18 +182,20 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" target="_self">
-          pwn入门系列10——ELF文件格式
+        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" target="_self">
+          Pwn入门系列10——linux动态内存管理机制
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" target="_self">
+        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94linux%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6/" target="_self">
           
           
             
           
-          ELF文件（1）linux环境中，二进制可持续文件的类型是ELF（Executable and Linkable Format）文件。（2）elf文件的格式比较简单，我们需要了解的就是elf文件中各个节、段的概念。（3）elf的基本信息存在于elf的头部信息中，这些信息包括指令的运行架构、程序入口等内容，我们可以通过readelf -h 来查看头部信息。（4）elf文件中包含了许多个节（secti
+          什么是堆（1）堆时程序用于分配动态内存的一段内存区域（2）它独立的存在与内存中，介于程序内存基地址和libc地址之间。（3）从低地址向高地址生长（4）和用户打交道
+例子1（1）一个留言板程序：用户可以输入自己的留言，留言长度由用户决定（2）我们之前学过，栈上存储的是一个函数的局部变量，bss存储全局变量（3）那么我们如何存储用户输入的留言呢？（4）用户的留言有可能是几百个到几千个字符。
+解决办法：
         </a>
       </p>
 
@@ -201,7 +203,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-12 12:32" pubdate>
+            <time datetime="2021-07-12 05:49" pubdate>
               2021-07-12
             </time>
           </div>

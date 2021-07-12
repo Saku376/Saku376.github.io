@@ -18,7 +18,7 @@
   <meta name="author" content="Saku376">
   <meta name="keywords" content="网络安全、二进制、pwn">
   
-  <title>Pwn入门系列8——基本栈溢出 - Saku376&#39;s Pwn Sea</title>
+  <title>Pwn入门系列9——函数调用流程与调用约定 - Saku376&#39;s Pwn Sea</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -163,7 +163,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Pwn入门系列8——基本栈溢出">
+            <span class="h2" id="subtitle" title="Pwn入门系列9——函数调用流程与调用约定">
               
             </span>
 
@@ -173,8 +173,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-07-05 00:05" pubdate>
-        2021年7月5日 凌晨
+      <time datetime="2021-07-08 21:22" pubdate>
+        2021年7月8日 晚上
       </time>
     </span>
   
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      476 字
+      804 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      5
+      9
        分钟
     </span>
   
@@ -225,15 +225,12 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Pwn入门系列8——基本栈溢出</h1>
+            <h1 style="display: none">Pwn入门系列9——函数调用流程与调用约定</h1>
             
             <div class="markdown-body">
-              <h3 id="基础栈溢出"><a href="#基础栈溢出" class="headerlink" title="基础栈溢出"></a>基础栈溢出</h3><p>①一般来说，在CTF中的PWN，多数情况下我们需要让程序执行这一段代码：<br>②system(“/bin/sh”)<br>③也就是说在远程机器上开一个命令行终端。<br>④这样我们就可以通过命令行来控制目标机器。</p>
-<h3 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h3><p>①理想情况下，程序中有一段代码能直接满足我们的需求<br><img src="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/1.png" srcset="/img/loading.gif" lazyload alt="1.png"><br>②我们只需要将执行流劫持到这一段代码即可。</p>
-<h3 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a>ret2shellcode</h3><p>①如果程序中没有这样的代码，怎么办？<br>②我们可以自己写shellcode<br>③shellcode就是一段可以独立运行开启shell的一段汇编代码。<br><img src="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/2.png" srcset="/img/loading.gif" lazyload alt="2.png"><br>④ret2shellcode的思路就是：<br>⑤如果程序中存在让用户向一段长度足够的缓冲区输入数据。<br>⑥我们向其输入shellcode。<br>⑦将程序劫持到shellcode上即可。</p>
-<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>①vul函数存在明显的栈溢出。<br>②可以劫持控制流到gen_shell函数。<br>③可以劫持控制流到global_buf（即bss段，全局变量在bss段，向bss段写入shellcode）<br>④gcc example.c -o example -z execstack -fno-stack-protector -no-pie -z -norelro<br>⑤编译完成后，sudo chmod +x example（给执行权限）<br>⑥运行：./example</p>
-<h3 id="ret2libc"><a href="#ret2libc" class="headerlink" title="ret2libc"></a>ret2libc</h3><p>①有时候我们需要调用一些系统函数，比如说system或者execve等。<br>②程序中可能不会提供一些现成的函数。<br>③如果我们拿到了libc中函数的地址，我们可以直接调用libc的函数。<br>④只需要传递好参数，然后call即可。<br>⑤那么如何传递参数呢？<br>⑥如调用system(/bin/sh)<br>⑦只需要将rdi设置为/bin/sh字符串地址，然后call system即可。<br>⑧如何设置？</p>
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>①如果直接mov，然后call，那么就和ret2shellcode无异。<br>②现在问题是，我们只有一个libc地址和/bin/sh字符串地址，以及一个栈溢出漏洞，怎么传递参数？<br>③思考如下形式的栈溢出<br>④pop rdi ret+/bin/sh地址+system</p>
+              <h3 id="函数调用流程"><a href="#函数调用流程" class="headerlink" title="函数调用流程"></a>函数调用流程</h3><p><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/2.png" srcset="/img/loading.gif" lazyload alt="1.png"><br>（1）当运行到call func_b时main函数的栈帧<br>（2）RBP指向栈顶,rsp指向栈顶<br>（3）这段栈帧存放了一些main的局部变量<br>（4）main函数要调用func_b,main只需要call func_b<br>（5）也就是push rip；mov rip func_b;<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/2.png" srcset="/img/loading.gif" lazyload alt="2.png"><br>（6）那么此时跳转到func_b继续执行，func_b直接执行主逻辑吗？<br>（7）显然不是的，被调用函数还要维护栈帧。<br>（8）具体来说，需要以下几步<br>①push rbp：将调用函数的栈底指针保存<br>②mov rbp rsp：将栈底指针指向现在的栈顶<br>③sub rsp xxx；开辟被调用函数的栈帧，此时上一步的rbp就指向栈帧的底部。<br>（9）func_b执行完维护栈帧操作后的栈布局<br>（10）所谓栈帧的维护就是维护rbp和rsp两个指针<br>（11）RSP永远指向栈顶<br>（12）RBP用来定位局部变量<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/3.png" srcset="/img/loading.gif" lazyload alt="3.png"><br>（13）现在，func_b要调用func_a，其调用流程与main函数调用func_b基本一致<br>（14）不同之处在于返回地址、rbp和rsp指向的地址，以及开辟的栈空间不同<br>（15）func_b调用完func_a后的栈布局<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/4.png" srcset="/img/loading.gif" lazyload alt="4.png"><br>（16）至此，示例的函数调用已经完毕<br>（17）现在，func_a执行完毕，要返回了<br>（18）该如何维护栈帧呢？<br>（19）Leave指令：<br>①作用是维护栈帧，通常出现在函数的结尾，与ret连用<br>②其实际作用为：mov rsp rbp;pop rbp;<br>③即：将栈顶指针指向栈帧底部，然后在栈中弹出新的栈底指针。<br>（20）在一个函数执行结束返回时，会执行leave；ret<br>（21）实际效果就是：mov rsp rbp；pop rbp；pop eip<br>（22）观察程序执行至func_a时的栈帧。<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/5.png" srcset="/img/loading.gif" lazyload alt="5.png"><br>（23）func_a执行完毕返回后，栈布局如图：<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/6.png" srcset="/img/loading.gif" lazyload alt="6.png"><br>（24）可以与之前func_b未调用func_a前的栈帧对比<br>（25）一模一样，说明已经恢复了栈帧<br>（26）唯一不同处就在于此程序的rip已经指向了c=1<br>（27）func_b执行完毕返回后，栈布局如图：<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/7.png" srcset="/img/loading.gif" lazyload alt="7.png"><br>（28）在这之后，main函数继续执行，直到结束。</p>
+<h3 id="函数调用流程总结"><a href="#函数调用流程总结" class="headerlink" title="函数调用流程总结"></a>函数调用流程总结</h3><p>①调用函数：只需要将rip压栈，即push rip，然后将rip赋值为被调用函数的起始地址，这已操作被隐性的内置在call指令中。<br>②被调用函数：push rbp;mov rbp rsp;sub rsp 0xxx。即保存调用函数的rbp指针，将自己的rbp指针指向栈顶，然后开辟栈空间给自己用，此时就变成了被调用函数的栈底。<br>③函数返回：leave；ret；翻译过来就是：mov rsp rbp；pop rbp；pop rip；<br>即恢复栈帧，返回调用函数的返回地址。</p>
+<h3 id="调用约定"><a href="#调用约定" class="headerlink" title="调用约定"></a>调用约定</h3><p>（1）返回值：一般来说，一个函数的返回值会存储到RAX寄存器<br>（2）X86-64函数的调用约定为：<br>①从左至右参数一次传递给rdi,rsi，rdx,rcx,r8,r9<br>②如果一个函数的参数多于6个，则其余的参数从右至左压入栈中传递。<br>（3）syscall指令：<br>①用于调用系统函数，调用时需要知名操作系统调用号<br>②系统调用号在rax寄存器中，然后布置好参数，执行syscall即可。<br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/8.png" srcset="/img/loading.gif" lazyload alt="8.png"><br><img src="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/9.png" srcset="/img/loading.gif" lazyload alt="9.png"></p>
 
             </div>
             <hr>
@@ -254,9 +251,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/">
+                      <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Pwn入门系列9——函数调用流程与调用约定</span>
+                        <span class="hidden-mobile">pwn入门系列10——ELF文件格式</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -264,8 +261,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%977%E2%80%94%E2%80%94%E6%A0%88%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86/">
-                        <span class="hidden-mobile">Pwn入门系列7——栈溢出原理</span>
+                      <a href="/2021/07/04/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%978%E2%80%94%E2%80%94%E5%9F%BA%E6%9C%AC%E6%A0%88%E6%BA%A2%E5%87%BA/">
+                        <span class="hidden-mobile">Pwn入门系列8——基本栈溢出</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

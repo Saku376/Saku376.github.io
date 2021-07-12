@@ -182,18 +182,18 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/07/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" target="_self">
-          Pwn入门系列9——函数调用流程与调用约定
+        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" target="_self">
+          pwn入门系列10——ELF文件格式
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/07/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" target="_self">
+        <a href="/2021/07/11/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%9710%E2%80%94%E2%80%94ELF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" target="_self">
           
           
             
           
-          
+          ELF文件（1）linux环境中，二进制可持续文件的类型是ELF（Executable and Linkable Format）文件。（2）elf文件的格式比较简单，我们需要了解的就是elf文件中各个节、段的概念。（3）elf的基本信息存在于elf的头部信息中，这些信息包括指令的运行架构、程序入口等内容，我们可以通过readelf -h 来查看头部信息。（4）elf文件中包含了许多个节（secti
         </a>
       </p>
 
@@ -201,7 +201,43 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-08 00:22" pubdate>
+            <time datetime="2021-07-12 12:32" pubdate>
+              2021-07-12
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" target="_self">
+          Pwn入门系列9——函数调用流程与调用约定
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/07/08/pwn%E5%85%A5%E9%97%A8%E7%B3%BB%E5%88%979%E2%80%94%E2%80%94%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E4%B8%8E%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" target="_self">
+          
+          
+            
+          
+          函数调用流程（1）当运行到call func_b时main函数的栈帧（2）RBP指向栈顶,rsp指向栈顶（3）这段栈帧存放了一些main的局部变量（4）main函数要调用func_b,main只需要call func_b（5）也就是push rip；mov rip func_b;（6）那么此时跳转到func_b继续执行，func_b直接执行主逻辑吗？（7）显然不是的，被调用函数还要维护栈帧。（8）
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-07-08 21:22" pubdate>
               2021-07-08
             </time>
           </div>
@@ -503,43 +539,6 @@ linux基础①虚拟内存和物理内存②物理内存很直白，就是内存
             <i class="iconfont icon-date"></i>
             <time datetime="2021-06-28 23:55" pubdate>
               2021-06-28
-            </time>
-          </div>
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/" target="_self">
-          漏洞挖掘技术
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/06/27/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E6%8A%80%E6%9C%AF/" target="_self">
-          
-          
-            
-          
-          
-
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-06-27 21:54" pubdate>
-              2021-06-27
             </time>
           </div>
         
